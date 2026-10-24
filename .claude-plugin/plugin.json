@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "clins",
+  "version": "0.1.0",
+  "description": "Caio Lins's agent skills: engineering posts in plain English (with an optional second language) and PRs with before/after images.",
+  "author": {
+    "name": "Caio Lins",
+    "url": "https://github.com/clins1994"
+  },
+  "repository": "https://github.com/clins1994/skills",
+  "license": "MIT",
+  "keywords": [
+    "writing",
+    "pull-requests",
+    "github",
+    "linear",
+    "screenshots",
+    "bilingual"
+  ]
+}
