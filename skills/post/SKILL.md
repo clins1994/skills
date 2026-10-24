@@ -58,7 +58,13 @@ For another language, use its flag, and translate the block title and the "origi
 - A blank line goes above `---`. Without it, Markdown can turn the lead into a heading.
 - Every block is collapsed.
 - With two languages, both blocks say the same thing, with the same headings, lists and code. Edit them together.
-- Footer, last: `🤖 Generated with [Claude Code](https://claude.com/claude-code) using [clins:post](https://github.com/clins1994/skills/blob/main/skills/post/SKILL.md)`
+- Footer, last. It names the skill the user ran, so a reader knows what to run to get the same result:
+
+  ```
+  🤖 Generated with [Claude Code](https://claude.com/claude-code) using [clins:<skill>](https://github.com/clins1994/skills/blob/main/skills/<skill>/SKILL.md)
+  ```
+
+  `<skill>` is `create-pr`, `github` or `linear` when one of them sent you here, and `post` when the user ran this skill directly. Name only that one skill. It links to the skills it uses.
 - **Short post:** when the details add nothing ("Fixed in abc1234. Please review again."), post only the lead (or both leads). No divider, no block, no footer.
 - Anything a bot adds below the footer (for example a review summary) is not yours. Never edit it.
 
@@ -88,7 +94,7 @@ python3 <skill-dir>/scripts/check_post.py --platform linear --lang ja post.md   
 python3 <skill-dir>/scripts/check_post.py --lang pt --title "🇧🇷 Mais detalhes (para agentes)" --label "Original" post.md
 ```
 
-It checks the lead, the divider, the block titles and order, that blocks are collapsed and closed, the footer, English style (em-dash, semicolon, curly quote, contraction, weak modal), `@greptileai`, the other platform's block syntax, and, with two languages, that both blocks have the same structure (for Japanese, also 80 characters per sentence and no space between full-width and half-width text). It ignores everything below the footer. Fix every error and run it again.
+Add `--skill <name>` to require that skill in the footer. It checks the lead, the divider, the block titles and order, that blocks are collapsed and closed, the footer (a `clins:<skill>` name that matches its link), English style (em-dash, semicolon, curly quote, contraction, weak modal), `@greptileai`, the other platform's block syntax, and, with two languages, that both blocks have the same structure (for Japanese, also 80 characters per sentence and no space between full-width and half-width text). It ignores everything below the footer. Fix every error and run it again.
 
 The script cannot check meaning. Also make sure that a reader of the lead alone knows what to do, and that the post does not end with "Let me know" or a recap.
 

@@ -7,7 +7,7 @@ argument-hint: "[issue | comment | reply] [issue ID or URL to update] [--lang <c
 
 # /clins:linear — Post to Linear
 
-This skill sends a post to Linear. The text (lead, details block, language, footer, check) comes from [`clins:post`](../post/SKILL.md). Pass `--lang` through to it.
+This skill sends a post to Linear. The text (lead, details block, language, footer, check) comes from [`clins:post`](../post/SKILL.md). Pass `--lang` through to it. The footer names `clins:linear`.
 
 ## Rules
 
@@ -29,7 +29,7 @@ This skill sends a post to Linear. The text (lead, details block, language, foot
 - Divider: `---` with blank lines around it.
 - Mention: `@displayName` (the Linear display name, not a GitHub login).
 - Linear stores links as `[text](<url>)`. That is normal, and the check accepts it.
-- Check with `check_post.py --platform linear`.
+- Check with `check_post.py --platform linear --skill linear`.
 
 ## New issue
 

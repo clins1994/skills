@@ -17,8 +17,15 @@ import sys
 
 EN_TITLE = "🇬🇧 More details (for agents)"
 KNOWN = {"ja": ("🇯🇵 詳細（エージェント向け）", "原文")}
-FOOTER = ("🤖 Generated with [Claude Code](https://claude.com/claude-code) using "
-          "[clins:post](https://github.com/clins1994/skills/blob/main/skills/post/SKILL.md)")
+def footer(skill: str = "post") -> str:
+    return ("🤖 Generated with [Claude Code](https://claude.com/claude-code) using "
+            f"[clins:{skill}](https://github.com/clins1994/skills/blob/main/skills/{skill}/SKILL.md)")
+
+
+FOOTER = footer()
+FOOTER_LINE = re.compile(r"^🤖 Generated with \[Claude Code\]\(https://claude\.com/claude-code\) using "
+                         r"\[clins:([a-z0-9-]+)\]\(https://github\.com/clins1994/skills/blob/main/skills/([a-z0-9-]+)/SKILL\.md\)$",
+                         re.M)
 CJK = "぀-ヿ㐀-鿿！-｠"
 JA_LIMIT = 80
 
@@ -56,8 +63,10 @@ def shape(body: str):
             "code fences": len(re.findall(r"^```", body, re.M))}
 
 
-def check(text: str, platform: str | None, lang: str | None, title: str | None, label: str | None):
+def check(text: str, platform: str | None, lang: str | None, title: str | None, label: str | None,
+          skill: str | None = None):
     err: list[str] = []
+    foot = FOOTER_LINE.search(text)
     if lang and lang != "en":
         title = title or KNOWN.get(lang, (None, None))[0]
         label = label or KNOWN.get(lang, (None, None))[1]
@@ -120,9 +129,13 @@ def check(text: str, platform: str | None, lang: str | None, title: str | None, 
         found = [b[1] for b in blocks]
         if found != titles:
             err.append(f"Expected the block titles {titles}, found {found}.")
-        if FOOTER not in text:
+        if not foot:
             err.append("The footer is missing or changed. Copy it from SKILL.md.")
-    elif "---" in (l.strip() for l in lines) or FOOTER in text:
+        elif foot[1] != foot[2]:
+            err.append(f"The footer names clins:{foot[1]} but links to skills/{foot[2]}.")
+        elif skill and foot[1] != skill:
+            err.append(f"The footer names clins:{foot[1]}. This post comes from clins:{skill}.")
+    elif "---" in (l.strip() for l in lines) or foot:
         err.append("A short post (no block) has no divider and no footer.")
 
     # English style.
@@ -156,12 +169,14 @@ def main() -> int:
     ap.add_argument("--lang", help="second language code, for example ja")
     ap.add_argument("--title", help="block title for a --lang without a built-in one")
     ap.add_argument("--label", help="'original' label for a --lang without a built-in one")
+    ap.add_argument("--skill", help="the skill the footer must name, for example create-pr")
     a = ap.parse_args()
     text = sys.stdin.read() if a.path == "-" else open(a.path, encoding="utf-8").read()
     text = re.sub(r"\]\(<([^>\s]+)>\)", r"](\1)", text.replace("\r\n", "\n"))  # Linear links
-    if FOOTER in text:
-        text = text[: text.index(FOOTER) + len(FOOTER)] + "\n"
-    errors = check(text, a.platform, a.lang, a.title, a.label)
+    foot = FOOTER_LINE.search(text)
+    if foot:
+        text = text[: foot.end()] + "\n"  # Bot sections below the footer are not ours.
+    errors = check(text, a.platform, a.lang, a.title, a.label, a.skill)
     for e in errors:
         print(f"error: {e}")
     print(f"{len(errors)} error(s)")

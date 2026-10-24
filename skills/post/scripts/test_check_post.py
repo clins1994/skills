@@ -4,7 +4,7 @@ import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from check_post import EN_TITLE, FOOTER, check  # noqa: E402
+from check_post import EN_TITLE, FOOTER, check, footer  # noqa: E402
 
 GH_EN = f"""Adds retry to the upload step. Please review the backoff values.
 
@@ -75,11 +75,14 @@ CASES = [
     ("structure mismatch fails", GH_JA.replace("- 3回", "3回"), dict(lang="ja"), ["list items"]),
     ("short post with footer fails", "Fixed.\n\n" + FOOTER, {}, ["short post"]),
     ("unknown language needs a title", GH_EN, dict(lang="pt"), ["--title"]),
+    ("create-pr footer passes", GH_EN.replace(FOOTER, footer("create-pr")), dict(skill="create-pr"), []),
+    ("footer name must match its link", GH_EN.replace("[clins:post]", "[clins:linear]"), {}, ["links to"]),
+    ("footer must name the running skill", GH_EN, dict(skill="linear"), ["comes from clins:linear"]),
 ]
 
 failed = 0
 for name, text, kw, want in CASES:
-    errs = check(text, kw.get("platform"), kw.get("lang"), None, None)
+    errs = check(text, kw.get("platform"), kw.get("lang"), None, None, kw.get("skill"))
     ok = (not errs) if not want else all(any(w in e for e in errs) for w in want)
     print(("ok  " if ok else "FAIL"), name, "" if ok else errs)
     failed += not ok

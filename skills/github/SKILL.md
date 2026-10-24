@@ -7,7 +7,7 @@ argument-hint: "[pr | comment | reply | issue] [number or URL to update] [--lang
 
 # /clins:github — Post to GitHub
 
-This skill sends a post to GitHub. The text (lead, details block, language, footer, check) comes from [`clins:post`](../post/SKILL.md). To open a pull request, start with [`clins:create-pr`](../create-pr/SKILL.md). It uses this skill for the GitHub steps.
+This skill sends a post to GitHub. The text (lead, details block, language, footer, check) comes from [`clins:post`](../post/SKILL.md). The footer names `clins:github`, except on a pull request body, where it names `clins:create-pr`. To open a pull request, start with [`clins:create-pr`](../create-pr/SKILL.md). It uses this skill for the GitHub steps.
 
 ## Rules
 
@@ -27,7 +27,7 @@ This skill sends a post to GitHub. The text (lead, details block, language, foot
 - Collapsed block: `<details><summary><h3>🇬🇧 More details (for agents)</h3></summary>`, a blank line, the content, a blank line, `</details>`. The blank line after `</summary>` is required, or GitHub shows raw Markdown. The `<h3>` makes the title bigger.
 - Never `<details open>`. Never Linear's `>>>`.
 - Mention: `@login`. Link: `#123` or `owner/repo#123`.
-- Check with `check_post.py --platform github`.
+- Check with `check_post.py --platform github --skill github` (or `--skill create-pr` for a pull request body).
 
 ## Pull request body with images
 
