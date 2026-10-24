@@ -1,6 +1,6 @@
 ---
 name: post
-description: The writing format for engineering posts - a short lead for humans, then the full text in a collapsed "More details (for agents)" block, then a footer. English by default. With `--lang <code>` (for example `ja`), a translated lead and one collapsed block per language. Runs an English style pass, writes the lead last, and checks the result with a bundled script. clins:create-pr, clins:github and clins:linear use it for the text. Use it directly for any other post, or when asked to "write this up", "draft a post", or "translate the post".
+description: The writing format for engineering posts - a short lead for humans, then the full text in a collapsed "More details" block, then a footer. English by default. With `--lang <code>` (for example `ja`), a translated lead and one collapsed block per language. Runs an English style pass, writes the lead last, and checks the result with a bundled script. clins:create-pr, clins:github and clins:linear use it for the text. Use it directly for any other post, or when asked to "write this up", "draft a post", or "translate the post".
 user-invocable: true
 argument-hint: "[--lang <code>] [what to write]"
 ---
@@ -32,7 +32,7 @@ English only:
 
 ---
 
-▸ 🇬🇧 More details (for agents)   (collapsed: the full text)
+▸ 🇬🇧 More details   (collapsed: the full text)
 
 🤖 footer
 ```
@@ -46,8 +46,8 @@ With `--lang ja`:
 
 ---
 
-▸ 🇯🇵 詳細（エージェント向け）   (collapsed: the full Japanese)
-▸ 🇬🇧 More details (for agents)  (collapsed: the full English)
+▸ 🇯🇵 詳細   (collapsed: the full Japanese)
+▸ 🇬🇧 More details  (collapsed: the full English)
 
 🤖 footer
 ```
@@ -91,10 +91,10 @@ Never change code, identifiers, commands, file paths, quoted errors, product nam
 ```bash
 python3 <skill-dir>/scripts/check_post.py --platform github post.md            # English only
 python3 <skill-dir>/scripts/check_post.py --platform linear --lang ja post.md   # two languages
-python3 <skill-dir>/scripts/check_post.py --lang pt --title "🇧🇷 Mais detalhes (para agentes)" --label "Original" post.md
+python3 <skill-dir>/scripts/check_post.py --lang pt --title "🇧🇷 Mais detalhes" --label "Original" post.md
 ```
 
-Add `--skill <name>` to require that skill in the footer. It checks the lead, the divider, the block titles and order, that blocks are collapsed and closed, the footer (a `clins:<skill>` name that matches its link), English style (em-dash, semicolon, curly quote, contraction, weak modal), `@greptileai`, the other platform's block syntax, and, with two languages, that both blocks have the same structure (for Japanese, also 80 characters per sentence and no space between full-width and half-width text). It ignores everything below the footer. Fix every error and run it again.
+Add `--skill <name>` to require that skill in the footer. It checks the lead, the divider, the block titles and order, that blocks are collapsed and closed, that no `<summary>` holds a heading, the footer (a `clins:<skill>` name that matches its link), English style (em-dash, semicolon, curly quote, contraction, weak modal), `@greptileai`, the other platform's block syntax, and, with two languages, that both blocks have the same structure (for Japanese, also 80 characters per sentence and no space between full-width and half-width text). It ignores everything below the footer. Fix every error and run it again.
 
 The script cannot check meaning. Also make sure that a reader of the lead alone knows what to do, and that the post does not end with "Let me know" or a recap.
 

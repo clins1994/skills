@@ -27,7 +27,7 @@ This skill uses the `gh` CLI. It does not cover the GitHub MCP server yet ([`CON
 
 ## GitHub syntax
 
-- Collapsed block: `<details><summary><h3>🇬🇧 More details (for agents)</h3></summary>`, a blank line, the content, a blank line, `</details>`. The blank line after `</summary>` is required, or GitHub shows raw Markdown. The `<h3>` makes the title bigger.
+- Collapsed block: `<details><summary><b>🇬🇧 More details</b></summary>`, a blank line, the content, a blank line, `</details>`. The blank line after `</summary>` is required, or GitHub shows raw Markdown. Use `<b>`, not a heading, in `<summary>`. A heading adds its own top margin below the `---` divider, so the gap doubles.
 - Never `<details open>`. Never Linear's `>>>`.
 - Mention: `@login`. Link: `#123` or `owner/repo#123`.
 - Check with `check_post.py --platform github --skill github` (or `--skill create-pr` for a pull request body).

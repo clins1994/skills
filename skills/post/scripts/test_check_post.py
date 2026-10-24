@@ -10,7 +10,7 @@ GH_EN = f"""Adds retry to the upload step. Please review the backoff values.
 
 ---
 
-<details><summary><h3>{EN_TITLE}</h3></summary>
+<details><summary><b>{EN_TITLE}</b></summary>
 
 ## Summary
 
@@ -27,7 +27,7 @@ GH_JA = f"""アップロードに再試行を足しました。待ち時間の�
 
 ---
 
-<details><summary><h3>🇯🇵 詳細（エージェント向け）</h3></summary>
+<details><summary><b>🇯🇵 詳細</b></summary>
 
 ## 概要
 
@@ -35,7 +35,7 @@ GH_JA = f"""アップロードに再試行を足しました。待ち時間の�
 
 </details>
 
-<details><summary><h3>{EN_TITLE}</h3></summary>
+<details><summary><b>{EN_TITLE}</b></summary>
 
 ## Summary
 
@@ -69,6 +69,7 @@ CASES = [
     ("open block fails", GH_EN.replace("<details>", "<details open>"), {}, ["open"]),
     ("missing footer fails", GH_EN.replace(FOOTER, ""), {}, ["footer"]),
     ("no blank line above divider fails", GH_EN.replace("values.\n\n---", "values.\n---"), {}, ["blank line above"]),
+    ("heading in summary fails", GH_EN.replace("<b>", "<h3>").replace("</b>", "</h3>"), {}, ["heading in <summary>"]),
     ("contraction fails", GH_EN.replace("Retry three", "Don't retry three"), {}, ["contraction"]),
     ("Linear syntax on GitHub fails", LINEAR_EN, dict(platform="github"), ["Linear block syntax"]),
     ("missing English lead fails", GH_JA.replace("原文: ", ""), dict(lang="ja"), ["Two-language lead"]),
