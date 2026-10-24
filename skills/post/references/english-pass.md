@@ -1,6 +1,6 @@
 # English pass
 
-Run this on the full English text before you write the lead or translate anything. The pass has two parts. The first part comes from `simple-english`. The second part comes from `pstack:unslop` and covers only what `simple-english` does not.
+Run this on all english text: on the source before you write the lead or translate anything when english is the source, and on the english translation when it is not. The pass has two parts. The first part comes from `simple-english`. The second part comes from `pstack:unslop` and covers only what `simple-english` does not.
 
 If the `simple-english` skill is installed, use it in Plain mode for part 1. If it is not installed, apply the summary below. `pstack:unslop` cannot be called by an agent (`disable-model-invocation`), so part 2 is always this file.
 

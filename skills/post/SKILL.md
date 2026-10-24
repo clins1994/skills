@@ -1,15 +1,15 @@
 ---
 name: post
-description: The writing format for engineering posts - a short lead for humans, then the full text in a collapsed "More details" block, then a footer. English by default. With `--lang <code>` (for example `ja`), a translated lead and one collapsed block per language. Runs an English style pass, writes the lead last, and checks the result with a bundled script. clins:create-pr, clins:github and clins:linear use it for the text. Use it directly for any other post, or when asked to "write this up", "draft a post", or "translate the post".
+description: The writing format for engineering posts - a short lead for humans, then the full text in a collapsed "More details" block, then a footer. Writes in the user's own languages - a lead language and any other languages under it, saved once as a default and changed per post in plain words ("japanese as well", "only the lead", "swap them"). Asks for the default the first time. Runs a style pass per language, writes the lead last, and checks the result with a bundled script. clins:create-pr, clins:github and clins:linear use it for the text. Use it directly for any other post, or when asked to "write this up", "draft a post", or "translate the post".
 user-invocable: true
-argument-hint: "[--lang <code>] [what to write]"
+argument-hint: "[what to write, and any language changes]"
 ---
 
 # /clins:post — The post format
 
 A person reads the lead. An agent, or a person who wants everything, opens the details. So every post is a short lead, then the full text in a collapsed block.
 
-This skill owns the **text**: format, language, style and the check. The platform skills own **where it goes**:
+This skill owns the **text**: format, languages, style and the check. The platform skills own **where it goes**:
 
 - [`clins:create-pr`](../create-pr/SKILL.md): the pull request workflow (range, checks, title, before/after images). It uses this skill for the body.
 - [`clins:github`](../github/SKILL.md): GitHub commands and syntax for PR bodies, PR comments, review replies and issues.
@@ -17,15 +17,62 @@ This skill owns the **text**: format, language, style and the check. The platfor
 
 Each one gives the block syntax, the headings and the commands for its platform, and sends you here for the text. For another platform, use the closest collapsible syntax it has.
 
-## Language
+## Languages
 
-- No `--lang`: English only.
-- `--lang <code>`: the lead in that language first, then the English lead after a label that means "original" (`原文:` for Japanese), then one collapsed block per language. The English is the original. You write it first and translate from it.
-- If the repo's `AGENTS.md`/`CLAUDE.md` sets a language, use it when `--lang` is not given.
+A post has a **lead language**, shown first, and zero or more **other languages** under it. People name languages in plain words ("japanese", "brazilian portuguese", "azerbaijani"). They never need a language code. You map each name to its code, flag and block title.
+
+### The default
+
+The default lives in one line of an instructions file the agent already reads:
+
+```
+clins:post languages: lead english; also japanese
+```
+
+Look for it in this order, and use the first one you find:
+
+1. What the user says for this post (below).
+2. The repo's `AGENTS.md` or `CLAUDE.md`. A team can set its own default there.
+3. The user's global instructions file, for example `~/.claude/CLAUDE.md` for Claude Code or `~/.codex/AGENTS.md` for Codex.
+
+### First run
+
+If no default exists, ask before you write. Use the agent's question tool with options when it has one, and plain text when it does not:
+
+1. "Which language should your posts lead with?" Options: **english** (the default), and **another language**, where the user types it, for example "azerbaijani".
+2. "Add other languages under it?" Options: **no, just the lead**, and **yes**, where the user types them, for example "japanese and portuguese".
+
+Then show the line, save it to the user's global instructions file, and say how to change it: "Saved. To change it, just tell me, for example: change my post languages to portuguese and japanese." If the user does not want it saved, use the answer for this post only.
+
+If you cannot ask (CI, or a run with no prompts), use english and say so in your result.
+
+### Changes for one post
+
+The user changes the languages in plain words when they call the skill. These change this post only. The saved default changes only when the user says so ("change my default to …"). With the default "lead english; also japanese":
+
+| The user says | Languages for this post |
+|---|---|
+| nothing | english, then japanese |
+| "this time no japanese" or "only the lead" | english |
+| "portuguese as well" | english, then japanese and portuguese |
+| "japanese and chinese" | english, then japanese and chinese. The lead stays unless the user moves it. |
+| "japanese lead, english second" | japanese, then english |
+| "swap them" | japanese, then english |
+| "use only portuguese" | portuguese |
+
+"Swap" works when there is one other language. With several, ask which one leads.
+
+### Which language is the original
+
+The **source** is the user's default lead language. Write the post there first, and translate every other language from the finished source text.
+
+- Usually the source is also the lead, so the lead is the original.
+- If the user puts another language first, the source lead goes second or later, after a label that means "original" in the lead language: `原文:` for japanese and chinese, `Original:` for english and portuguese. This tells readers which text is authoritative.
+- If the source is not in this post's languages at all ("use only portuguese" for an english user), the lead language is the source.
 
 ## The format
 
-English only:
+One language:
 
 ```
 <lead: what it is, and what the reader must do>
@@ -37,27 +84,43 @@ English only:
 🤖 footer
 ```
 
-With `--lang ja`:
+Lead english, also japanese:
 
 ```
-<Japanese lead>
+<english lead>
 
-原文: <English lead>
+<japanese lead>
 
 ---
 
-▸ 🇯🇵 詳細   (collapsed: the full Japanese)
-▸ 🇬🇧 More details  (collapsed: the full English)
+▸ 🇬🇧 More details   (collapsed: the full english)
+▸ 🇯🇵 詳細           (collapsed: the full japanese)
 
 🤖 footer
 ```
 
-For another language, use its flag, and translate the block title and the "original" label in the same way.
+Lead japanese, also english, when english is the source:
+
+```
+<japanese lead>
+
+原文: <english lead>
+
+---
+
+▸ 🇯🇵 詳細           (collapsed: the full japanese)
+▸ 🇬🇧 More details   (collapsed: the full english)
+
+🤖 footer
+```
+
+Block titles: 🇬🇧 More details, 🇯🇵 詳細, 🇨🇳 详细信息, 🇹🇼 詳細資訊, 🇰🇷 자세한 내용, 🇧🇷 Mais detalhes, 🇵🇹 Mais detalhes, 🇪🇸 Más detalles, 🇫🇷 Plus de détails, 🇩🇪 Weitere Details, 🇮🇹 Altri dettagli, 🇮🇳 अधिक विवरण, 🇩🇰 Flere detaljer, 🇦🇿 Ətraflı. For another language, use its flag and translate "More details" in the same short way.
 
 - An @mention line, if any, goes first.
+- One lead per language, each its own paragraph, in the post's language order. Then one block per language, in the same order.
 - A blank line goes above `---`. Without it, Markdown can turn the lead into a heading.
 - Every block is collapsed.
-- With two languages, both blocks say the same thing, with the same headings, lists and code. Edit them together.
+- With more than one language, all blocks say the same thing, with the same headings, lists and code. Edit them together.
 - Footer, last. It names the skill the user ran, so a reader knows what to run to get the same result:
 
   ```
@@ -65,36 +128,50 @@ For another language, use its flag, and translate the block title and the "origi
   ```
 
   `<skill>` is `create-pr`, `github` or `linear` when one of them sent you here, and `post` when the user ran this skill directly. Name only that one skill. It links to the skills it uses.
-- **Short post:** when the details add nothing ("Fixed in abc1234. Please review again."), post only the lead (or both leads). No divider, no block, no footer.
+- **Short post:** when the details add nothing ("Fixed in abc1234. Please review again."), post only the leads. No divider, no block, no footer.
 - Anything a bot adds below the footer (for example a review summary) is not yours. Never edit it.
 
 ## Steps
 
-1. **Draft the full English.** Use the platform skill's headings, or the repo's. Facts in: commits, files, numbers, links.
-2. **English pass.** Follow [`references/english-pass.md`](references/english-pass.md). If the `simple-english` skill is installed, use it in Plain mode for part 1.
-3. **Translate** (only with `--lang`). From the finished English, never from the draft. Short sentences, no translated tone, and the same headings, lists and code as the English. One translation per English term. If a plain-writing skill for that language is installed, use it. For Japanese, follow the JTF style guide: `、` and `。`, half-width letters and digits, and no space between full-width and half-width text.
-4. **Write the lead last.** One or two sentences: what this is, and what the reader must do. If there is nothing to do, say what changed. No preamble ("This PR...", "I wanted to..."). With `--lang`, translate the lead too.
-5. **Assemble** in the format above, with the platform's block syntax.
-6. **Check** (below).
+1. **Settle the languages:** the default, the user's changes for this post, and the source (above).
+2. **Draft the full text in the source language.** Use the platform skill's headings, or the repo's. Facts in: commits, files, numbers, links.
+3. **Style pass in the source language.** For english, follow [`references/english-pass.md`](references/english-pass.md), and use the `simple-english` skill in Plain mode for part 1 if it is installed. For any language, if a plain-writing skill for it is installed, use it. Otherwise apply the same ideas: short sentences, concrete words, no filler.
+4. **Translate** into each other language, from the finished source text. Never from a draft, and never from another translation. Short sentences, no translated tone, and the same headings, lists and code as the source. One translation per term. For japanese, follow the JTF style guide: `、` and `。`, half-width letters and digits, and no space between full-width and half-width text. If english is a translation, run the english pass on it too.
+5. **Write the leads last.** One or two sentences in the source language: what this is, and what the reader must do. If there is nothing to do, say what changed. No preamble ("This PR...", "I wanted to..."). Then translate the lead.
+6. **Assemble** in the format above, with the platform's block syntax.
+7. **Check** (below).
 
 Never change code, identifiers, commands, file paths, quoted errors, product names, numbers, or text quoted from another person. Copy quotes, logs and bot output unchanged.
 
 ## Updating a post
 
-1. Change the English first, then the same paragraphs in the other language. Never edit only one language.
-2. Reread the lead. Rewrite it if a fact or the action changed.
+1. Change the source language first, then the same paragraphs in every other language. Never edit only one language.
+2. Reread the leads. Rewrite them if a fact or the action changed.
 3. Leave other people's text, and everything below the footer, as it is.
 4. Check again. The platform skill says how to fetch and save the text.
 
 ## Check before you post
 
+The script takes language codes. Pass the post's languages in order, lead first, and the source when it is not the lead:
+
 ```bash
-python3 <skill-dir>/scripts/check_post.py --platform github post.md            # English only
-python3 <skill-dir>/scripts/check_post.py --platform linear --lang ja post.md   # two languages
-python3 <skill-dir>/scripts/check_post.py --lang pt --title "🇧🇷 Mais detalhes" --label "Original" post.md
+python3 <skill-dir>/scripts/check_post.py --platform github post.md                          # english only
+python3 <skill-dir>/scripts/check_post.py --platform github --langs en,ja post.md            # lead english, also japanese
+python3 <skill-dir>/scripts/check_post.py --platform linear --langs ja,en --source en post.md # lead japanese, english is the original
+python3 <skill-dir>/scripts/check_post.py --langs pt --title "pt=🇧🇷 Mais detalhes" post.md     # set a title the script does not know
 ```
 
-Add `--skill <name>` to require that skill in the footer. It checks the lead, the divider, the block titles and order, that blocks are collapsed and closed, that no `<summary>` holds a heading, the footer (a `clins:<skill>` name that matches its link), English style (em-dash, semicolon, curly quote, contraction, weak modal), `@greptileai`, the other platform's block syntax, and, with two languages, that both blocks have the same structure (for Japanese, also 80 characters per sentence and no space between full-width and half-width text). It ignores everything below the footer. Fix every error and run it again.
+Add `--skill <name>` to require that skill in the footer. It checks:
+
+- one lead per language, the "original" label when the source is not the lead, and a lead of at most two sentences
+- the divider, the block titles and their order, that blocks are collapsed and closed, and that no `<summary>` holds a heading
+- the footer: a `clins:<skill>` name that matches its link
+- english style on english text: em-dash, semicolon, curly quote, contraction, weak modal
+- japanese style on japanese text: 80 characters per sentence, no space between full-width and half-width text
+- that every other block has the same headings, list items and code as the source block
+- `@greptileai`, and the other platform's block syntax
+
+It ignores everything below the footer. Fix every error and run it again. For a language without a built-in title or label, pass `--title code=...` and `--label code=...`.
 
 The script cannot check meaning. Also make sure that a reader of the lead alone knows what to do, and that the post does not end with "Let me know" or a recap.
 
@@ -102,6 +179,6 @@ The script cannot check meaning. Also make sure that a reader of the lead alone 
 
 None are required. The rules this skill needs are in `references/`. These public skills make it better when they are installed:
 
-- [`simple-english`](https://github.com/AminBlg/SimpleEnglish) (step 2, Plain mode): `npx skills add AminBlg/SimpleEnglish`
-- [`i-have-adhd`](https://github.com/ayghri/i-have-adhd): the "lead with the next action" rule in step 4 comes from it.
-- [`unslop`](https://github.com/cursor/plugins/tree/main/pstack/skills/unslop) from `pstack`: part 2 of the English pass is copied from it, because agents cannot call it.
+- [`simple-english`](https://github.com/AminBlg/SimpleEnglish) (step 3, Plain mode, for english): `npx skills add AminBlg/SimpleEnglish`
+- [`i-have-adhd`](https://github.com/ayghri/i-have-adhd): the "lead with the next action" rule in step 5 comes from it.
+- [`unslop`](https://github.com/cursor/plugins/tree/main/pstack/skills/unslop) from `pstack`: part 2 of the english pass is copied from it, because agents cannot call it.
