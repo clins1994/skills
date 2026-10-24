@@ -1,13 +1,13 @@
 ---
 name: linear
-description: Post to Linear through the Linear MCP server - create and update issues (title, team, assignee, labels, parent), post and edit comments, and reply in comment threads. Gives Linear's collapsible block syntax, mentions, and safe description updates with `patch` that keep Linear's issue tags. The text comes from clins:post, in English or, with `--lang <code>`, in two languages. Use whenever you file, write up, update or comment on a Linear issue.
+description: Post to Linear through the Linear MCP server - create and update issues (title, team, assignee, labels, parent), post and edit comments, and reply in comment threads. Gives Linear's collapsible block syntax, mentions, and safe description updates with `patch` that keep Linear's issue tags. The text comes from clins:post, in the user's languages. Use whenever you file, write up, update or comment on a Linear issue.
 user-invocable: true
-argument-hint: "[issue | comment | reply] [issue ID or URL to update] [--lang <code>]"
+argument-hint: "[issue | comment | reply] [issue ID or URL to update] [any language changes]"
 ---
 
 # /clins:linear — Post to Linear
 
-This skill sends a post to Linear. The text (lead, details block, language, footer, check) comes from [`clins:post`](../post/SKILL.md). Pass `--lang` through to it. The footer names `clins:linear`.
+This skill sends a post to Linear. The text (leads, details blocks, languages, footer, check) comes from [`clins:post`](../post/SKILL.md). Pass any language changes the user asked for through to it. The footer names `clins:linear`.
 
 ## Rules
 
@@ -34,7 +34,7 @@ This skill sends a post to Linear. The text (lead, details block, language, foot
 ## New issue
 
 1. **Title:** imperative and short, with code names as they are. Match the team's language and style.
-2. **Description:** write it with `clins:post`. Headings inside the details: Context, Work, Done when. Add To decide or Sub-issues only when they have content. With `--lang ja`: 背景, やること, 完了条件.
+2. **Description:** write it with `clins:post`. Headings inside the details: Context, Work, Done when. Add To decide or Sub-issues only when they have content. Translate them for each other language, for example in japanese: 背景, やること, 完了条件.
 3. **Fields:** only the ones the user gave or the team clearly uses: `assignee` (a name, email or `"me"`), `labels` (names from `list_issue_labels`), `project`, `parentId` (for a sub-issue), `priority`. To add a label to an existing issue, use `addLabels`: `labels` replaces the whole set. Use names exactly as Linear returns them. Status names can carry an emoji prefix, and a bare name can fail silently, so copy the full name from `list_issue_statuses`.
 4. `save_issue` with the title, team, description and fields. Give the user the issue ID and URL.
 

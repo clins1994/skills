@@ -2,12 +2,12 @@
 name: github
 description: Post to GitHub with gh - pull request bodies with uploaded images (`gh --attach`) and a render check, PR comments, replies inside review threads, and issues. Gives the GitHub block syntax and safe edits that keep bot sections below the footer. The text comes from clins:post; clins:create-pr uses this skill for its GitHub steps. Use whenever you post, comment, reply, or file an issue on GitHub, or upload images to a GitHub post.
 user-invocable: true
-argument-hint: "[pr | comment | reply | issue] [number or URL to update] [--lang <code>]"
+argument-hint: "[pr | comment | reply | issue] [number or URL to update] [any language changes]"
 ---
 
 # /clins:github — Post to GitHub
 
-This skill sends a post to GitHub. The text (lead, details block, language, footer, check) comes from [`clins:post`](../post/SKILL.md). The footer names `clins:github`, except on a pull request body, where it names `clins:create-pr`. To open a pull request, start with [`clins:create-pr`](../create-pr/SKILL.md). It uses this skill for the GitHub steps.
+This skill sends a post to GitHub. The text (leads, details blocks, languages, footer, check) comes from [`clins:post`](../post/SKILL.md). The footer names `clins:github`, except on a pull request body, where it names `clins:create-pr`. To open a pull request, start with [`clins:create-pr`](../create-pr/SKILL.md). It uses this skill for the GitHub steps.
 
 ## Rules
 
@@ -91,7 +91,7 @@ A short post is usually right: "Fixed in abc1234." Resolve the thread only if th
 
 ## Issue
 
-Headings, unless the repo's issue template has its own: Context, Work, Done when. With `--lang ja`: 背景, やること, 完了条件.
+Headings, unless the repo's issue template has its own: Context, Work, Done when. Translate them for each other language, for example in japanese: 背景, やること, 完了条件.
 
 ```bash
 gh issue create -R <owner>/<repo> --title "<title>" --body-file post.md [--assignee <login>] [--label <name>]

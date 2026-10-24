@@ -27,7 +27,7 @@ Between the lead and `---`, with **relative local paths**. The host skill swaps 
 ---
 ```
 
-- With `--lang`, put both languages in the header (`前 / Before`) and in each caption (`<other language><br><English>`).
+- With more than one language, put every language in the header (`Before / 前`) and in each caption, one line per language (`<lead language><br><next language>`), in the post's language order.
 - Alt text says what the image shows, never "screenshot".
 - A new state with no "before" goes below the table, alone, with its caption.
 - A video goes in its own paragraph as `![](./flow.mp4)`.
