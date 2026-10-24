@@ -119,6 +119,13 @@ CASES = [
     ("block order follows the languages", GH_JA_EN, dict(langs=["en", "ja"]), ["block titles"]),
     ("english style is not applied to portuguese", GH_PT_JA.replace("Tenta", "Should tenta"), dict(langs=["pt", "ja"]), []),
     ("japanese spacing fails", GH_EN_JA.replace("3回まで", "3 回まで"), dict(langs=["en", "ja"]), ["full-width"]),
+    ("japanese length ignores a link's URL", GH_EN_JA.replace(
+        "3回まで再試行する。",
+        "[3回まで再試行する](https://developers.raycast.com/basics/prepare-an-extension-for-store#metadata-and-configuration)。"),
+     dict(langs=["en", "ja"]), []),
+    ("japanese length counts a link's text", GH_EN_JA.replace(
+        "3回まで再試行する。", "[" + "再試行" * 30 + "](https://example.com)。"),
+     dict(langs=["en", "ja"]), ["over 80 chars"]),
     ("short post with footer fails", "Fixed.\n\n" + FOOTER, {}, ["short post"]),
     ("unknown language needs a title", GH_EN, dict(langs=["xx"]), ["--title xx="]),
     ("title override passes", GH_EN.replace(EN_TITLE, "🇽🇽 Custom"), dict(langs=["xx"], titles={"xx": "🇽🇽 Custom"}), []),

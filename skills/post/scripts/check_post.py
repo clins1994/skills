@@ -101,7 +101,9 @@ def style(lang: str, lines) -> list[str]:
                 if re.search(pat, line, re.I):
                     err.append(f"English {why}: {line[:50]}…")
         elif base(lang) == "ja":
-            for sent in re.split(r"(?<=。)", line):
+            # A reader sees a link's text, not its URL, so only the text counts toward the length.
+            shown = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", line)
+            for sent in re.split(r"(?<=。)", shown):
                 if len(sent.strip()) > JA_LIMIT:
                     err.append(f"Japanese sentence over {JA_LIMIT} chars: {sent[:40]}…")
             if re.search(rf"[{CJK}] [A-Za-z0-9]|[A-Za-z0-9] [{CJK}]", line):

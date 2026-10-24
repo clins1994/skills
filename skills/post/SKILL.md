@@ -167,7 +167,7 @@ Add `--skill <name>` to require that skill in the footer. It checks:
 - the divider, the block titles and their order, that blocks are collapsed and closed, and that no `<summary>` holds a heading
 - the footer: a `clins:<skill>` name that matches its link
 - english style on english text: em-dash, semicolon, curly quote, contraction, weak modal
-- japanese style on japanese text: 80 characters per sentence, no space between full-width and half-width text
+- japanese style on japanese text: 80 characters per sentence (a link counts its text, not its URL), no space between full-width and half-width text
 - that every other block has the same headings, list items and code as the source block
 - `@greptileai`, and the other platform's block syntax
 
