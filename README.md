@@ -34,3 +34,11 @@ Every skill preflights its own dependencies (a CLI, an MCP connection) and fails
 
 - **[clins:post](./skills/post/SKILL.md)**: engineering posts (PR descriptions and comments, Linear issues and comments) as a short lead for humans plus a collapsed "🇬🇧 More details (for agents)" block. English by default. `--lang ja` (or another language) adds a translated lead and a second collapsed block. Includes a check script.
 - **[clins:pr](./skills/pr/SKILL.md)**: opens or updates a GitHub PR with before/after images right under the lead, uploaded with `gh --attach` (nothing committed). Covers the title, capture on web and Android, and a render check. Text comes from `clins:post`, with the same `--lang` option.
+
+## Credits
+
+`clins:post` builds on these public skills, and works better with them installed:
+
+- [simple-english](https://github.com/AminBlg/SimpleEnglish) by AminBlg
+- [i-have-adhd](https://github.com/ayghri/i-have-adhd) by ayghri
+- [unslop](https://github.com/cursor/plugins/tree/main/pstack/skills/unslop) from Cursor's `pstack`
