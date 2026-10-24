@@ -59,13 +59,14 @@ Good places to start. Open an issue to claim one, or to suggest your own.
 **New host and tracker skills**
 
 - **`gitlab`**, a host skill for `create-pr` built on `glab`: merge request bodies with uploads, comments, thread replies and issues.
-- **Other trackers** (Jira, GitHub Projects), as platform skills that use `post` for the text.
+- **`jira`**, a tracker skill next to `linear`: issues with fields, safe description updates, comments and replies, through the Jira REST API or an MCP server. Its collapsed block is the `{expand}` macro, or an expand node in the new editor.
+- **Other trackers** (GitHub Projects, and more), as platform skills that use `post` for the text.
 
 **`post`**
 
 - **More built-in languages** in `check_post.py` (block title and "original" label), with tests.
 - **Rules for another language** in `check_post.py`, like the japanese spacing rule (`TIGHT_MIX`) or a language written without spaces (`NO_SPACES`).
-- **A GitLab block syntax** in the check script, once a `gitlab` skill exists.
+- **GitLab and Jira block syntax** in the check script, once a `gitlab` or `jira` skill exists.
 
 **Demo**
 

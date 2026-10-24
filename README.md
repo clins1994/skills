@@ -43,7 +43,7 @@ create-pr ──► post (text) ──► github (commands)
 linear ─────► post (text)
 ```
 
-`post` owns the text. `github` and `linear` own the platform: syntax, commands and updates. `create-pr` owns the pull request workflow and works with any host skill, so a `gitlab` skill can sit next to `github` later.
+`post` owns the text. `github` and `linear` own the platform: syntax, commands and updates. `create-pr` owns the pull request workflow and works with any host skill, so a `gitlab` skill can sit next to `github` later. A `jira` skill can sit next to `linear` the same way.
 
 ## Languages
 
@@ -57,7 +57,7 @@ After that, change languages for one post in plain words: "japanese as well", "o
 
 ## Contributing
 
-Ideas and pull requests are welcome. Some starting points: a Linear API path for `linear`, a GitHub MCP path for `github`, and a `gitlab` host skill for `create-pr`. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Ideas and pull requests are welcome. Some starting points: a Linear API path for `linear`, a GitHub MCP path for `github`, a `gitlab` host skill for `create-pr`, and a `jira` tracker skill next to `linear`. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Credits
 
