@@ -7,6 +7,9 @@
     python3 check_post.py --langs pt --title "pt=🇧🇷 Mais detalhes" post.md
     gh pr view 12 --json body -q .body | python3 check_post.py -
 
+Every language gets a sentence-length check. English text also gets the english style
+rules, and japanese text the JTF spacing rule.
+
 --langs lists the post's languages in order, lead first (default: en).
 --source is the language the post was written in (default: the lead). When
 the source is not the lead, its lead comes after the lead language's
@@ -53,7 +56,14 @@ FOOTER_LINE = re.compile(r"^🤖 Generated with \[Claude Code\]\(https://claude\
                          r"\[clins:([a-z0-9-]+)\]\(https://github\.com/clins1994/skills/blob/main/skills/([a-z0-9-]+)/SKILL\.md\)$",
                          re.M)
 CJK = "぀-ヿ㐀-鿿！-｠"
-JA_LIMIT = 80
+# Sentence length limits for every language. Languages written without spaces between
+# words count characters; the others count words.
+NO_SPACES = {"ja", "zh", "th"}
+CHAR_LIMIT = 80
+WORD_LIMIT = 30
+# Languages whose style guide puts no space between full-width and half-width text
+# (for japanese, the JTF style guide). Chinese guides differ, so it is not here.
+TIGHT_MIX = {"ja"}
 
 GITHUB = re.compile(r"<details[^>]*>\s*<summary>(?P<t>.*?)</summary>\n\n(?P<b>.*?)\n</details>", re.S)
 LINEAR = re.compile(r"^>>> (?P<t>[^\n]+)\n(?P<b>.*?)\n>>>$", re.S | re.M)
@@ -100,14 +110,16 @@ def style(lang: str, lines) -> list[str]:
             for pat, why in EN_STYLE:
                 if re.search(pat, line, re.I):
                     err.append(f"English {why}: {line[:50]}…")
-        elif base(lang) == "ja":
-            # A reader sees a link's text, not its URL, so only the text counts toward the length.
-            shown = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", line)
-            for sent in re.split(r"(?<=。)", shown):
-                if len(sent.strip()) > JA_LIMIT:
-                    err.append(f"Japanese sentence over {JA_LIMIT} chars: {sent[:40]}…")
-            if re.search(rf"[{CJK}] [A-Za-z0-9]|[A-Za-z0-9] [{CJK}]", line):
-                err.append(f"Space between full-width and half-width text: {line[:40]}…")
+        # A reader sees a link's text, not its URL, so only the text counts toward the length.
+        shown = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", line)
+        for sent in re.split(r"(?<=[.!?])\s+|(?<=[。！？])", shown):
+            if base(lang) in NO_SPACES:
+                if len(sent.strip()) > CHAR_LIMIT:
+                    err.append(f"Sentence over {CHAR_LIMIT} characters ({lang}): {sent.strip()[:40]}…")
+            elif len(sent.split()) > WORD_LIMIT:
+                err.append(f"Sentence over {WORD_LIMIT} words ({lang}): {sent.strip()[:50]}…")
+        if base(lang) in TIGHT_MIX and re.search(rf"[{CJK}] [A-Za-z0-9]|[A-Za-z0-9] [{CJK}]", line):
+            err.append(f"Space between full-width and half-width text ({lang}): {line[:40]}…")
     return err
 
 
