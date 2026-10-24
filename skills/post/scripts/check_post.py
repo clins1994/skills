@@ -56,6 +56,9 @@ FOOTER_LINE = re.compile(r"^🤖 Generated with \[Claude Code\]\(https://claude\
                          r"\[clins:([a-z0-9-]+)\]\(https://github\.com/clins1994/skills/blob/main/skills/([a-z0-9-]+)/SKILL\.md\)$",
                          re.M)
 CJK = "぀-ヿ㐀-鿿！-｠"
+# Sentence ends: latin punctuation before a space, and full stops that need no space
+# (CJK 。！？ and the devanagari danda । used in hindi).
+SENTENCE_END = r"(?<=[.!?])\s+|(?<=[。！？])|(?<=[।॥])\s*"
 # Sentence length limits for every language. Languages written without spaces between
 # words count characters; the others count words.
 NO_SPACES = {"ja", "zh", "th"}
@@ -112,7 +115,7 @@ def style(lang: str, lines) -> list[str]:
                     err.append(f"English {why}: {line[:50]}…")
         # A reader sees a link's text, not its URL, so only the text counts toward the length.
         shown = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", line)
-        for sent in re.split(r"(?<=[.!?])\s+|(?<=[。！？])", shown):
+        for sent in re.split(SENTENCE_END, shown):
             if base(lang) in NO_SPACES:
                 if len(sent.strip()) > CHAR_LIMIT:
                     err.append(f"Sentence over {CHAR_LIMIT} characters ({lang}): {sent.strip()[:40]}…")
@@ -185,7 +188,7 @@ def check(text: str, platform: str | None, langs: list[str] | None = None, sourc
             leads[source] = leads[source][len(label) + 1:].strip()
             if not leads[source]:
                 err.append(f"The '{label}:' line is empty.")
-    if len(re.findall(r"[.!?。！？](?:\s|$)", leads[source])) > 2:
+    if len(re.findall(r"[.!?。！？।](?:\s|$)|[。！？।](?=\S)", no_code(leads[source]))) > 2:
         err.append("The lead is longer than two sentences. Move detail into the block.")
 
     # Divider, blocks, footer.

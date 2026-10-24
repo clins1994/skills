@@ -64,6 +64,7 @@ Good places to start. Open an issue to claim one, or to suggest your own.
 
 **`post`**
 
+- **Try the skills in your language** and report what reads badly or fails the check. The README lists the languages tested so far.
 - **More built-in languages** in `check_post.py` (block title and "original" label), with tests.
 - **Rules for another language** in `check_post.py`, like the japanese spacing rule (`TIGHT_MIX`) or a language written without spaces (`NO_SPACES`).
 - **GitLab and Jira block syntax** in the check script, once a `gitlab` or `jira` skill exists.

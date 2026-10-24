@@ -55,6 +55,22 @@ clins:post languages: lead english; also japanese
 
 After that, change languages for one post in plain words: "japanese as well", "only the lead", "swap them", "use only portuguese". To change the default, say so: "change my post languages to portuguese and japanese". A repo can set its own default in its `AGENTS.md` or `CLAUDE.md`.
 
+### Tested languages
+
+The skills work in any language, but only these have been used for real so far:
+
+| Language | Used in | Checks in `check_post.py` |
+|---|---|---|
+| english | pull requests, issues, Linear issues, comments | sentence length (words), english style rules |
+| japanese | pull requests, a Linear issue | sentence length (characters), no space between full-width and half-width text |
+| portuguese | one pull request | sentence length (words) |
+| chinese | one pull request | sentence length (characters) |
+| hindi | one pull request | sentence length (words), sentences end at `।` |
+
+The first run (the language questions) has only been tried in english.
+
+If you write in another language, or one of these looks wrong, please open an issue or a pull request: a post that reads badly, a check that fails on good text, or a block title or "original" label your language needs. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Contributing
 
 Ideas and pull requests are welcome. Some starting points: a Linear API path for `linear`, a GitHub MCP path for `github`, a `gitlab` host skill for `create-pr`, and a `jira` tracker skill next to `linear`. See [CONTRIBUTING.md](CONTRIBUTING.md).

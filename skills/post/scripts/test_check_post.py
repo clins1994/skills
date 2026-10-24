@@ -134,6 +134,12 @@ CASES = [
      dict(langs=["en", "zh"]), ["over 80 characters (zh)"]),
     ("chinese may space latin text", GH_EN_JA.replace("🇯🇵 詳細", "🇨🇳 详细信息").replace("3回まで再試行する。", "最多重试 3 次。"),
      dict(langs=["en", "zh"]), []),
+    ("hindi sentences end at the danda", GH_EN_JA.replace("🇯🇵 詳細", "🇮🇳 अधिक विवरण").replace(
+        "3回まで再試行する。", " ".join(["यह छोटा वाक्य है।"] * 12)),
+     dict(langs=["en", "hi"]), []),
+    ("long hindi sentence fails", GH_EN_JA.replace("🇯🇵 詳細", "🇮🇳 अधिक विवरण").replace(
+        "3回まで再試行する。", "यह " * 32 + "वाक्य है।"),
+     dict(langs=["en", "hi"]), ["over 30 words (hi)"]),
     ("short post with footer fails", "Fixed.\n\n" + FOOTER, {}, ["short post"]),
     ("unknown language needs a title", GH_EN, dict(langs=["xx"]), ["--title xx="]),
     ("title override passes", GH_EN.replace(EN_TITLE, "🇽🇽 Custom"), dict(langs=["xx"], titles={"xx": "🇽🇽 Custom"}), []),
