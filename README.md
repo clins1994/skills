@@ -31,7 +31,7 @@ The plugin names each skill `clins:<skill>`, for example `/clins:post`. The skil
 
 | Skill | What it does |
 |-------|--------------|
-| [post](skills/post/SKILL.md) | The writing format: a short lead for people, then the full text in a collapsed "🇬🇧 More details" block. English by default. `--lang ja` (or another language) adds a translated lead and a second block. Includes a check script. |
+| [post](skills/post/SKILL.md) | The writing format: a short lead for people, then the full text in a collapsed "More details" block. Writes in your languages: a lead language and any others under it. Includes a check script. |
 | [create-pr](skills/create-pr/SKILL.md) | Creates or updates a reviewable pull request: exact range, checks, title, before/after images right under the lead, body from `post`. Works with any host. Never merges. |
 | [github](skills/github/SKILL.md) | Posts to GitHub with `gh`: PR bodies with images uploaded by `gh --attach` and a render check, PR comments, replies in review threads, and issues. |
 | [linear](skills/linear/SKILL.md) | Posts to Linear through its MCP server: new issues with fields, safe description updates with `patch`, comments and thread replies. |
@@ -44,6 +44,16 @@ linear ─────► post (text)
 ```
 
 `post` owns the text. `github` and `linear` own the platform: syntax, commands and updates. `create-pr` owns the pull request workflow and works with any host skill, so a `gitlab` skill can sit next to `github` later.
+
+## Languages
+
+The first time you run `post`, it asks which language your posts lead with (english by default) and whether to add others. It saves one line to your agent's global instructions file:
+
+```
+clins:post languages: lead english; also japanese
+```
+
+After that, change languages for one post in plain words: "japanese as well", "only the lead", "swap them", "use only portuguese". To change the default, say so: "change my post languages to portuguese and japanese". A repo can set its own default in its `AGENTS.md` or `CLAUDE.md`.
 
 ## Contributing
 
