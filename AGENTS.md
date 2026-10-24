@@ -1,6 +1,6 @@
 Skills live one per folder under `skills/` (`skills/<name>/SKILL.md`). Claude Code loads them through the `clins` plugin (`.claude-plugin/plugin.json`, listed in `.claude-plugin/marketplace.json`), and `npx skills` finds the same folders.
 
-Name a skill's folder and its `name:` without a prefix (`skills/post/`, `name: post`). The plugin adds the prefix: Claude Code shows the skill as `/clins:post`. When one skill refers to another, write `clins:<name>`.
+Name a skill's folder and its `name:` without a prefix (`skills/create-pr/`, `name: create-pr`). The plugin adds the prefix: Claude Code shows the skill as `/clins:create-pr`. When one skill refers to another, write `clins:<name>`.
 
 Every skill must be listed in the top-level `README.md`, with its name linked to its `SKILL.md`.
 
