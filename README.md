@@ -31,3 +31,5 @@ Pick the skills and which agents to install them on (project or global scope). `
 Every skill preflights its own dependencies (a CLI, an MCP connection) and fails early with instructions if something is missing.
 
 ## Skills
+
+- **[clins:post](./skills/post/SKILL.md)**: engineering posts (PR descriptions and comments, Linear issues and comments) as a short lead for humans plus a collapsed "🇬🇧 More details (for agents)" block. English by default. `--lang ja` (or another language) adds a translated lead and a second collapsed block. Includes a check script.
