@@ -203,6 +203,27 @@ details.lnblk .inner { padding: 4px 0; }
 .c .md { padding: 4px 0 0; }
 .labels { display: flex; gap: 6px; flex-wrap: wrap; }
 
+/* Language pairs and the first-run question */
+.pairs { display: flex; flex-wrap: wrap; gap: 4px; }
+.pairs button {
+  cursor: pointer; border: 1px solid var(--line); background: none; border-radius: 6px; padding: 3px 8px;
+  font-size: 12px; font-weight: 500; color: var(--muted); transition: background-color .15s, color .15s;
+}
+.pairs button:hover { background: var(--hover); color: var(--strong); }
+.pairs button[aria-pressed="true"] { background: var(--pressed-bg); color: var(--pressed-fg); border-color: var(--pressed-bg); }
+.pairs button:focus-visible { outline: 2px solid var(--strong); outline-offset: 2px; }
+#multi-leads > p + p { margin-top: 12px; }
+#multi-blocks > details + details { margin-top: 8px; }
+.md > #multi-blocks + .footer-line { margin-top: 20px; }
+.ask { padding: 14px 16px; display: grid; gap: 10px; }
+.ask .q { color: var(--strong); font-weight: 600; }
+.ask .opt { display: flex; gap: 10px; align-items: baseline; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; }
+.ask .opt b { color: var(--strong); font-weight: 600; }
+.ask .opt span { color: var(--muted); font-size: 13px; }
+.ask .opt.on { border-color: var(--strong); }
+.ask .saved { color: var(--muted); font-size: 13px; }
+.ask .saved code { color: var(--strong); }
+
 /* Prev/next, like the post page */
 .pager { display: flex; justify-content: space-between; margin-top: 48px; font-size: 14px; }
 .pager a { color: var(--muted); text-decoration: none; transition: color .15s; }
@@ -257,7 +278,24 @@ footer a:hover { border-color: #4b5563; }
   </nav>
 
   <div class="panel" role="tabpanel" id="panel-post" aria-labelledby="tab-post">
-    <div class="skill-intro"><p>The writing format. A lead people read, then the full text in a collapsed block for agents. English by default. <code>--lang ja</code> adds a second language. The other skills use it for their text.</p></div>
+    <div class="skill-intro"><p>The writing format. A lead people read, then the full text in a collapsed block for agents. It writes in your languages: a lead language and any others under it, saved once as your default. Change them for one post in plain words. The other skills use it for their text.</p></div>
+
+    <section class="example">
+      <div class="ex-head"><h2>First run</h2><span class="cmd">/clins:post</span></div>
+      <p class="ex-note">With no default saved, it asks once, in the agent's own question UI, and saves one line to your agent's global instructions file. No language codes needed.</p>
+      <div class="mock">
+        <div class="mock-top"><b>Claude</b> asks</div>
+        <div class="ask">
+          <div class="q">Which language should your posts lead with?</div>
+          <div class="opt on"><b>english</b><span>the default</span></div>
+          <div class="opt"><b>another language…</b><span>type it, for example "azerbaijani"</span></div>
+          <div class="q">Add other languages under it?</div>
+          <div class="opt"><b>no, just the lead</b></div>
+          <div class="opt on"><b>yes…</b><span>"japanese"</span></div>
+          <div class="saved">Saved <code>clins:post languages: lead english; also japanese</code>. To change it, just tell me, for example: change my post languages to portuguese and japanese.</div>
+        </div>
+      </div>
+    </section>
 
     <section class="example">
       <div class="ex-head"><h2>PR comment, English only</h2><span class="cmd">/clins:post</span></div>
@@ -289,8 +327,8 @@ footer a:hover { border-color: #4b5563; }
     </section>
 
     <section class="example">
-      <div class="ex-head"><h2>PR comment with a second language</h2><span class="cmd">/clins:post --lang ja</span></div>
-      <p class="ex-note">The Japanese lead comes first, then <code>原文:</code> and the English original. There is one collapsed block per language, and both blocks say the same thing.</p>
+      <div class="ex-head"><h2>PR comment, japanese first</h2><span class="cmd">/clins:post japanese first</span></div>
+      <p class="ex-note">The default is english. For a team that reads japanese, ask for japanese first. English is still the original, so it comes after <code>原文:</code>. There is one collapsed block per language, and both blocks say the same thing.</p>
       <div class="mock">
         <div class="mock-top"><span class="avatar me"></span><b>clins1994</b> commented just now</div>
         <div class="md">
@@ -333,7 +371,7 @@ footer a:hover { border-color: #4b5563; }
   </div>
 
   <div class="panel" role="tabpanel" id="panel-create-pr" aria-labelledby="tab-create-pr" hidden>
-    <div class="skill-intro"><p>Creates a reviewable pull request: exact range, checks, title, before/after images under the lead, and the body from <code>clins:post</code>. Works with any host skill. English by default. <code>--lang zh</code> (or another language) adds a second language.</p></div>
+    <div class="skill-intro"><p>Creates a reviewable pull request: exact range, checks, title, before/after images under the lead, and the body from <code>clins:post</code>. Works with any host skill. Writes in your languages from <code>clins:post</code>.</p></div>
 
     <section class="example">
       <div class="ex-head"><h2>PR description with before/after images</h2><span class="cmd">/clins:create-pr</span></div>
@@ -410,18 +448,23 @@ footer a:hover { border-color: #4b5563; }
       </div>
     </section>
 
-    <section class="example">
-      <div class="ex-head"><h2>PR description in two languages</h2><span class="cmd">/clins:create-pr --lang zh</span></div>
-      <p class="ex-note">The same pull request for a team that reads Chinese. The Chinese lead comes first, then <code>原文:</code> and the English original. The image table carries both languages, and there is one collapsed block per language.</p>
+    <section class="example" id="multi">
+      <div class="ex-head"><h2>PR description in more than one language</h2><span class="cmd" id="multi-cmd"></span></div>
+      <p class="ex-note" id="multi-note"></p>
+      <div class="pairs" role="group" aria-label="Languages" id="multi-pairs">
+        <button type="button" data-pair="en,ja">english, japanese</button>
+        <button type="button" data-pair="ja,en">japanese, english</button>
+        <button type="button" data-pair="zh,en">chinese, english</button>
+        <button type="button" data-pair="pt,ja">portuguese, japanese</button>
+      </div>
       <div class="mock">
         <div class="mock-top"><span class="pill open">Open</span><b>clins1994</b> wants to merge 3 commits into <code>main</code></div>
         <h3 class="mock-title">auth: show an error on a wrong password <span>#128</span></h3>
         <div class="md">
-          <p class="lead">密码错误时，表单下方现在会显示“邮箱或密码错误”。请检查文案和深色模式下的错误颜色。</p>
-          <p class="lead">原文: A wrong password now shows "Wrong email or password" under the form. Please check the copy and the error color in dark mode.</p>
+          <div id="multi-leads"></div>
           <div class="shots">
             <table>
-              <thead><tr><th>之前 / Before</th><th>之后 / After</th></tr></thead>
+              <thead><tr><th id="multi-before"></th><th id="multi-after"></th></tr></thead>
               <tbody>
                 <tr>
                   <td>
@@ -453,53 +496,14 @@ footer a:hover { border-color: #4b5563; }
                   </td>
                 </tr>
                 <tr>
-                  <td>密码错误时没有任何提示。<br>A wrong password shows nothing.</td>
-                  <td>密码错误时会显示错误。<br>A wrong password shows an error.</td>
+                  <td id="multi-cap-before"></td>
+                  <td id="multi-cap-after"></td>
                 </tr>
               </tbody>
             </table>
           </div>
           <hr>
-          <details class="blk">
-            <summary>🇨🇳 详细信息（供智能体阅读）<span class="hint">collapsed</span></summary>
-            <div class="inner">
-              <h4>摘要</h4>
-              <p>登录表单把API返回的<code>401</code>显示为密码框下方的错误。</p>
-              <h4>原因</h4>
-              <p>用户平均重试4次后才重置密码（支持工单ENG-412）。</p>
-              <h4>改动</h4>
-              <ul>
-                <li><code>LoginForm.vue</code>读取<code>error.code</code>并显示消息。</li>
-                <li>在<code>en.json</code>中新增字符串<code>auth.wrongCredentials</code>。</li>
-              </ul>
-              <h4>测试方法</h4>
-              <ul><li><code>pnpm test:e2e login</code>：6个通过。</li></ul>
-              <h4>未测试的内容及原因</h4>
-              <ul><li>Safari 16。没有可用的设备。</li></ul>
-              <h4>截图</h4>
-              <p>见顶部。Chrome，1280×800，base <code>9c1e0d4</code>，head <code>a3f91c2</code>。</p>
-            </div>
-          </details>
-          <details class="blk">
-            <summary>🇬🇧 More details<span class="hint">collapsed</span></summary>
-            <div class="inner">
-              <h4>Summary</h4>
-              <p>The sign-in form shows the API's <code>401</code> as an inline error under the password field.</p>
-              <h4>Why</h4>
-              <p>Users retried 4 times on average before they reset their password (support ticket ENG-412).</p>
-              <h4>Changes</h4>
-              <ul>
-                <li><code>LoginForm.vue</code> reads <code>error.code</code> and shows the message.</li>
-                <li>New string <code>auth.wrongCredentials</code> in <code>en.json</code>.</li>
-              </ul>
-              <h4>How it was tested</h4>
-              <ul><li><code>pnpm test:e2e login</code>: 6 passed.</li></ul>
-              <h4>Not tested (and why)</h4>
-              <ul><li>Safari 16. No device available.</li></ul>
-              <h4>Screenshots</h4>
-              <p>At the top. Chrome, 1280×800, base <code>9c1e0d4</code>, head <code>a3f91c2</code>.</p>
-            </div>
-          </details>
+          <div id="multi-blocks"></div>
           <p class="footer-line">🤖 Generated with <a href="https://claude.com/claude-code">Claude Code</a> using <a href="https://github.com/clins1994/skills/blob/main/skills/create-pr/SKILL.md">clins:create-pr</a></p>
         </div>
       </div>
@@ -577,6 +581,43 @@ footer a:hover { border-color: #4b5563; }
     </section>
 
     <section class="example">
+      <div class="ex-head"><h2>Linear issue, english and japanese</h2><span class="cmd">/clins:linear issue, japanese as well</span></div>
+      <p class="ex-note">The default is english. "Japanese as well" adds a japanese lead under the english one, and a second block. English leads because it is the original.</p>
+      <div class="mock">
+        <div class="mock-top"><span class="ln-id">ENG-431</span><span class="ln-status"><i></i>Todo</span><span>· Assigned to clins1994</span></div>
+        <h3 class="mock-title">Show an error on a wrong password</h3>
+        <div class="md">
+          <p class="lead">The sign-in form shows nothing when the password is wrong. Add an inline error. This is done when the e2e test for a wrong password passes.</p>
+          <p class="lead">パスワードが違うと、サインインフォームに何も表示されません。エラーをフォーム内に表示してください。間違ったパスワードのe2eテストが通れば完了です。</p>
+          <hr>
+          <details class="lnblk">
+            <summary>🇬🇧 More details</summary>
+            <div class="inner">
+              <h4>Context</h4>
+              <p>The API returns <code>401</code> with <code>code: "wrong_credentials"</code>. The form ignores it.</p>
+              <h4>Work</h4>
+              <ul><li>Show the message under the password field.</li><li>Add the string to <code>en.json</code>.</li></ul>
+              <h4>Done when</h4>
+              <ul><li><code>pnpm test:e2e login</code> covers a wrong password and passes.</li></ul>
+            </div>
+          </details>
+          <details class="lnblk">
+            <summary>🇯🇵 詳細</summary>
+            <div class="inner">
+              <h4>背景</h4>
+              <p>APIは<code>401</code>と<code>code: "wrong_credentials"</code>を返す。フォームはこれを無視している。</p>
+              <h4>やること</h4>
+              <ul><li>パスワード欄の下にメッセージを表示する。</li><li><code>en.json</code>に文字列を追加する。</li></ul>
+              <h4>完了条件</h4>
+              <ul><li><code>pnpm test:e2e login</code>が間違ったパスワードのケースを含み、成功する。</li></ul>
+            </div>
+          </details>
+          <p class="footer-line">🤖 Generated with <a href="https://claude.com/claude-code">Claude Code</a> using <a href="https://github.com/clins1994/skills/blob/main/skills/linear/SKILL.md">clins:linear</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="example">
       <div class="ex-head"><h2>Linear comment and thread reply</h2><span class="cmd">/clins:linear reply</span></div>
       <p class="ex-note">A reply stays in its thread. When the details would only repeat the lead, the reply is just the lead.</p>
       <div class="mock">
@@ -606,6 +647,87 @@ footer a:hover { border-color: #4b5563; }
     d.style.colorScheme = isDark ? 'dark' : 'light'
     d.style.backgroundColor = isDark ? '#1c1c1c' : '#fcfcfc'
   })
+
+  ;(function () {
+    // One pull request, written in english (the user's default), shown in four language pairs.
+    var L = {
+      en: {
+        title: '🇬🇧 More details', original: 'Original', before: 'Before', after: 'After',
+        lead: 'A wrong password now shows "Wrong email or password" under the form. Please check the copy and the error color in dark mode.',
+        capBefore: 'A wrong password shows nothing.', capAfter: 'A wrong password shows an error.',
+        body: [['Summary', '<p>The sign-in form shows the API\'s <code>401</code> as an inline error under the password field.</p>'],
+               ['Why', '<p>Users retried 4 times on average before they reset their password (support ticket ENG-412).</p>'],
+               ['Changes', '<ul><li><code>LoginForm.vue</code> reads <code>error.code</code> and shows the message.</li><li>New string <code>auth.wrongCredentials</code> in <code>en.json</code>.</li></ul>'],
+               ['How it was tested', '<ul><li><code>pnpm test:e2e login</code>: 6 passed.</li></ul>'],
+               ['Not tested (and why)', '<ul><li>Safari 16. No device available.</li></ul>'],
+               ['Screenshots', '<p>At the top. Chrome, 1280×800, base <code>9c1e0d4</code>, head <code>a3f91c2</code>.</p>']]
+      },
+      ja: {
+        title: '🇯🇵 詳細', original: '原文', before: '変更前', after: '変更後',
+        lead: 'パスワードが違うとき、フォームの下に「Wrong email or password」と表示します。文言と、ダークモードでのエラーの色を確認してください。',
+        capBefore: 'パスワードが違っても何も表示されない。', capAfter: 'パスワードが違うとエラーが表示される。',
+        body: [['概要', '<p>サインインフォームで、APIの<code>401</code>をパスワード欄の下にエラーとして表示する。</p>'],
+               ['なぜ', '<p>ユーザーはパスワードをリセットするまでに平均4回やり直していた(サポートチケットENG-412)。</p>'],
+               ['変更点', '<ul><li><code>LoginForm.vue</code>で<code>error.code</code>を読み取り、メッセージを表示する。</li><li><code>en.json</code>に文字列<code>auth.wrongCredentials</code>を追加。</li></ul>'],
+               ['確かめたこと', '<ul><li><code>pnpm test:e2e login</code>:6件成功。</li></ul>'],
+               ['確かめていないこと・理由', '<ul><li>Safari 16。端末がない。</li></ul>'],
+               ['スクショ', '<p>上にあります。Chrome、1280×800、base <code>9c1e0d4</code>、head <code>a3f91c2</code>。</p>']]
+      },
+      zh: {
+        title: '🇨🇳 详细信息', original: '原文', before: '之前', after: '之后',
+        lead: '密码错误时，表单下方现在会显示“邮箱或密码错误”。请检查文案和深色模式下的错误颜色。',
+        capBefore: '密码错误时没有任何提示。', capAfter: '密码错误时会显示错误。',
+        body: [['摘要', '<p>登录表单把API返回的<code>401</code>显示为密码框下方的错误。</p>'],
+               ['原因', '<p>用户平均重试4次后才重置密码（支持工单ENG-412）。</p>'],
+               ['改动', '<ul><li><code>LoginForm.vue</code>读取<code>error.code</code>并显示消息。</li><li>在<code>en.json</code>中新增字符串<code>auth.wrongCredentials</code>。</li></ul>'],
+               ['测试方法', '<ul><li><code>pnpm test:e2e login</code>：6个通过。</li></ul>'],
+               ['未测试的内容及原因', '<ul><li>Safari 16。没有可用的设备。</li></ul>'],
+               ['截图', '<p>见顶部。Chrome，1280×800，base <code>9c1e0d4</code>，head <code>a3f91c2</code>。</p>']]
+      },
+      pt: {
+        title: '🇧🇷 Mais detalhes', original: 'Original', before: 'Antes', after: 'Depois',
+        lead: 'Uma senha errada agora mostra "Wrong email or password" abaixo do formulário. Confira o texto e a cor do erro no modo escuro.',
+        capBefore: 'Uma senha errada não mostra nada.', capAfter: 'Uma senha errada mostra um erro.',
+        body: [['Resumo', '<p>O formulário de login mostra o <code>401</code> da API como um erro abaixo do campo de senha.</p>'],
+               ['Por quê', '<p>Os usuários tentavam 4 vezes, em média, antes de redefinir a senha (chamado de suporte ENG-412).</p>'],
+               ['Mudanças', '<ul><li><code>LoginForm.vue</code> lê <code>error.code</code> e mostra a mensagem.</li><li>Nova string <code>auth.wrongCredentials</code> em <code>en.json</code>.</li></ul>'],
+               ['Como foi testado', '<ul><li><code>pnpm test:e2e login</code>: 6 passaram.</li></ul>'],
+               ['O que não foi testado (e por quê)', '<ul><li>Safari 16. Nenhum aparelho disponível.</li></ul>'],
+               ['Capturas de tela', '<p>No topo. Chrome, 1280×800, base <code>9c1e0d4</code>, head <code>a3f91c2</code>.</p>']]
+      }
+    }
+    var PAIRS = {
+      'en,ja': { cmd: '/clins:create-pr japanese as well', note: 'The default is english. "Japanese as well" adds a japanese lead under the english one, and a second block. English leads because it is the original.' },
+      'ja,en': { cmd: '/clins:create-pr japanese first', note: 'For a team that reads japanese. English is still the original, so it comes after <code>原文:</code>.' },
+      'zh,en': { cmd: '/clins:create-pr chinese first', note: 'For a team that reads chinese. English is still the original, so it comes after <code>原文:</code>.' },
+      'pt,ja': { cmd: '/clins:create-pr only portuguese and japanese', note: 'No english at all. Portuguese leads, so it becomes the original, and the japanese is translated from it.' }
+    }
+    var SOURCE = 'en' // the user's default lead language
+    var buttons = Array.prototype.slice.call(document.querySelectorAll('#multi-pairs button'))
+    function el(id) { return document.getElementById(id) }
+    function render(pair) {
+      var langs = pair.split(','), first = L[langs[0]]
+      var source = langs.indexOf(SOURCE) >= 0 ? SOURCE : langs[0]
+      buttons.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.pair === pair) })
+      el('multi-cmd').textContent = PAIRS[pair].cmd
+      el('multi-note').innerHTML = PAIRS[pair].note + ' The image table carries every language, and there is one collapsed block per language.'
+      el('multi-leads').innerHTML = langs.map(function (k) {
+        var label = k === source && k !== langs[0] ? first.original + ': ' : ''
+        return '<p class="lead">' + label + L[k].lead + '</p>'
+      }).join('')
+      el('multi-before').textContent = langs.map(function (k) { return L[k].before }).join(' / ')
+      el('multi-after').textContent = langs.map(function (k) { return L[k].after }).join(' / ')
+      el('multi-cap-before').innerHTML = langs.map(function (k) { return L[k].capBefore }).join('<br>')
+      el('multi-cap-after').innerHTML = langs.map(function (k) { return L[k].capAfter }).join('<br>')
+      el('multi-blocks').innerHTML = langs.map(function (k) {
+        return '<details class="blk"><summary>' + L[k].title + '<span class="hint">collapsed</span></summary><div class="inner">' +
+          L[k].body.map(function (s) { return '<h4>' + s[0] + '</h4>' + s[1] }).join('') + '</div></details>'
+      }).join('')
+    }
+    buttons.forEach(function (b) { b.addEventListener('click', function () { render(b.dataset.pair) }) })
+    var asked = new URLSearchParams(location.search).get('pair')
+    render(PAIRS[asked] ? asked : 'en,ja')
+  })()
 
   ;(function () {
     var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'))
