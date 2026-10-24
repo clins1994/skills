@@ -34,3 +34,14 @@ Between the lead and `---`, with **relative local paths**. The host skill swaps 
 - In the Screenshots section of the details, do not repeat the images. Say they are at the top and how you made them (device or browser, size, base and head commits).
 
 The host skill uploads the files and swaps the local paths for hosted URLs (on GitHub: `gh --attach`, see [`clins:github`](../../github/SKILL.md)). Then it checks that every image renders.
+
+If the user cannot upload images from the CLI, post the body with placeholders. This happens on GitHub without write access to the repo, which is usually the case for a PR from a fork. Put the placeholder in the same cell as the image and keep the caption row:
+
+```markdown
+| Before | After |
+|---|---|
+| 📎 **Paste `login-before.png` here** | 📎 **Paste `login-after.png` here** |
+| A wrong password shows nothing. | A wrong password shows an error. |
+```
+
+Then give the user the local path of each file. They paste each image over its placeholder in the browser. Run the render check only after the images are in. Until then, make sure that no `./` path is left in the body. The host skill has the steps ("Without write access" in [`clins:github`](../../github/SKILL.md)).
