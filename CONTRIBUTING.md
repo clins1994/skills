@@ -64,7 +64,7 @@ Good places to start. Open an issue to claim one, or to suggest your own.
 **`post`**
 
 - **More built-in languages** in `check_post.py` (block title and "original" label), with tests.
-- **Checks for another language**, like the japanese sentence-length and spacing checks.
+- **Rules for another language** in `check_post.py`, like the japanese spacing rule (`TIGHT_MIX`) or a language written without spaces (`NO_SPACES`).
 - **A GitLab block syntax** in the check script, once a `gitlab` skill exists.
 
 **Demo**

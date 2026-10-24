@@ -47,7 +47,7 @@ linear ─────► post (text)
 
 ## Languages
 
-The first time you run `post`, it asks which language your posts lead with (english by default) and whether to add others. It saves one line to your agent's global instructions file:
+The first time you run `post`, it asks, in the language you write to it in, which language your posts lead with (that language by default) and whether to add others. It saves one line to your agent's global instructions file:
 
 ```
 clins:post languages: lead english; also japanese

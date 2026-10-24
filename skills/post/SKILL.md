@@ -37,14 +37,14 @@ Look for it in this order, and use the first one you find:
 
 ### First run
 
-If no default exists, ask before you write. Use the agent's question tool with options when it has one, and plain text when it does not:
+If no default exists, ask before you write. Ask in the language the user writes to you in, so a user never has to read a language they did not choose. Use the agent's question tool with options when it has one, and plain text when it does not. The wording below is an example for a user who writes in english:
 
-1. "Which language should your posts lead with?" Options: **english** (the default), and **another language**, where the user types it, for example "azerbaijani".
+1. "Which language should your posts lead with?" Options: **the language the user writes to you in** (the default, here english), and **another language**, where the user types it, for example "azerbaijani".
 2. "Add other languages under it?" Options: **no, just the lead**, and **yes**, where the user types them, for example "japanese and portuguese".
 
-Then show the line, save it to the user's global instructions file, and say how to change it: "Saved. To change it, just tell me, for example: change my post languages to portuguese and japanese." If the user does not want it saved, use the answer for this post only.
+Then show the line, save it to the user's global instructions file, and say how to change it, in the same language: "Saved. To change it, just tell me, for example: change my post languages to portuguese and japanese." The saved line uses english language names, so every agent reads it the same way. If the user does not want it saved, use the answer for this post only.
 
-If you cannot ask (CI, or a run with no prompts), use english and say so in your result.
+If you cannot ask (CI, or a run with no prompts), use the language of the request, or english if that is not clear, and say so in your result.
 
 ### Changes for one post
 
@@ -136,7 +136,7 @@ Block titles: 🇬🇧 More details, 🇯🇵 詳細, 🇨🇳 详细信息, �
 1. **Settle the languages:** the default, the user's changes for this post, and the source (above).
 2. **Draft the full text in the source language.** Use the platform skill's headings, or the repo's. Facts in: commits, files, numbers, links.
 3. **Style pass in the source language.** For english, follow [`references/english-pass.md`](references/english-pass.md), and use the `simple-english` skill in Plain mode for part 1 if it is installed. For any language, if a plain-writing skill for it is installed, use it. Otherwise apply the same ideas: short sentences, concrete words, no filler.
-4. **Translate** into each other language, from the finished source text. Never from a draft, and never from another translation. Short sentences, no translated tone, and the same headings, lists and code as the source. One translation per term. For japanese, follow the JTF style guide: `、` and `。`, half-width letters and digits, and no space between full-width and half-width text. If english is a translation, run the english pass on it too.
+4. **Translate** into each other language, from the finished source text. Never from a draft, and never from another translation. Short sentences, no translated tone, and the same headings, lists and code as the source. One translation per term. Follow each language's own conventions: its punctuation, how it mixes in latin text, and its usual style guide (for japanese, the JTF style guide: `、` and `。`, half-width letters and digits, no space between full-width and half-width text). If english is a translation, run the english pass on it too.
 5. **Write the leads last.** One or two sentences in the source language: what this is, and what the reader must do. If there is nothing to do, say what changed. No preamble ("This PR...", "I wanted to..."). Then translate the lead.
 6. **Assemble** in the format above, with the platform's block syntax.
 7. **Check** (below).
@@ -167,7 +167,8 @@ Add `--skill <name>` to require that skill in the footer. It checks:
 - the divider, the block titles and their order, that blocks are collapsed and closed, and that no `<summary>` holds a heading
 - the footer: a `clins:<skill>` name that matches its link
 - english style on english text: em-dash, semicolon, curly quote, contraction, weak modal
-- japanese style on japanese text: 80 characters per sentence (a link counts its text, not its URL), no space between full-width and half-width text
+- sentence length in every language: 30 words, or 80 characters for languages written without spaces (japanese, chinese, thai). A link counts its text, not its URL.
+- no space between full-width and half-width text, for languages whose style guide asks for it (japanese)
 - that every other block has the same headings, list items and code as the source block
 - `@greptileai`, and the other platform's block syntax
 
