@@ -333,7 +333,7 @@ footer a:hover { border-color: #4b5563; }
   </div>
 
   <div class="panel" role="tabpanel" id="panel-create-pr" aria-labelledby="tab-create-pr" hidden>
-    <div class="skill-intro"><p>Creates a reviewable pull request: exact range, checks, title, before/after images under the lead, and the body from <code>clins:post</code>. Works with any host skill.</p></div>
+    <div class="skill-intro"><p>Creates a reviewable pull request: exact range, checks, title, before/after images under the lead, and the body from <code>clins:post</code>. Works with any host skill. English by default. <code>--lang zh</code> (or another language) adds a second language.</p></div>
 
     <section class="example">
       <div class="ex-head"><h2>PR description with before/after images</h2><span class="cmd">/clins:create-pr</span></div>
@@ -406,6 +406,101 @@ footer a:hover { border-color: #4b5563; }
           </details>
           <p class="footer-line">🤖 Generated with <a href="https://claude.com/claude-code">Claude Code</a> using <a href="https://github.com/clins1994/skills/blob/main/skills/create-pr/SKILL.md">clins:create-pr</a></p>
           <div class="bot"><b>Review bot summary</b> · added by the review bot after the PR opens. Nobody edits this part.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="example">
+      <div class="ex-head"><h2>PR description in two languages</h2><span class="cmd">/clins:create-pr --lang zh</span></div>
+      <p class="ex-note">The same pull request for a team that reads Chinese. The Chinese lead comes first, then <code>原文:</code> and the English original. The image table carries both languages, and there is one collapsed block per language.</p>
+      <div class="mock">
+        <div class="mock-top"><span class="pill open">Open</span><b>clins1994</b> wants to merge 3 commits into <code>main</code></div>
+        <h3 class="mock-title">auth: show an error on a wrong password <span>#128</span></h3>
+        <div class="md">
+          <p class="lead">密码错误时，表单下方现在会显示“邮箱或密码错误”。请检查文案和深色模式下的错误颜色。</p>
+          <p class="lead">原文: A wrong password now shows "Wrong email or password" under the form. Please check the copy and the error color in dark mode.</p>
+          <div class="shots">
+            <table>
+              <thead><tr><th>之前 / Before</th><th>之后 / After</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <svg viewBox="0 0 240 150" role="img" aria-label="Login form with no error message">
+                      <rect width="240" height="150" fill="var(--soft)"/>
+                      <rect x="40" y="18" width="160" height="114" rx="8" fill="var(--bg)" stroke="var(--line)"/>
+                      <text x="120" y="38" text-anchor="middle" font-size="10" font-weight="700" fill="var(--strong)" font-family="Geist, sans-serif">Sign in</text>
+                      <rect x="54" y="48" width="132" height="16" rx="3" fill="var(--soft)" stroke="var(--line)"/>
+                      <text x="59" y="59" font-size="7" fill="var(--muted)" font-family="Geist, sans-serif">mika@example.com</text>
+                      <rect x="54" y="70" width="132" height="16" rx="3" fill="var(--soft)" stroke="var(--line)"/>
+                      <text x="59" y="81" font-size="8" fill="var(--muted)" font-family="Geist, sans-serif">••••••••</text>
+                      <rect x="54" y="104" width="132" height="16" rx="3" fill="var(--strong)"/>
+                      <text x="120" y="115" text-anchor="middle" font-size="7.5" font-weight="600" fill="var(--bg)" font-family="Geist, sans-serif">Sign in</text>
+                    </svg>
+                  </td>
+                  <td>
+                    <svg viewBox="0 0 240 150" role="img" aria-label="Login form showing Wrong email or password">
+                      <rect width="240" height="150" fill="var(--soft)"/>
+                      <rect x="40" y="18" width="160" height="114" rx="8" fill="var(--bg)" stroke="var(--line)"/>
+                      <text x="120" y="38" text-anchor="middle" font-size="10" font-weight="700" fill="var(--strong)" font-family="Geist, sans-serif">Sign in</text>
+                      <rect x="54" y="48" width="132" height="16" rx="3" fill="var(--soft)" stroke="var(--line)"/>
+                      <text x="59" y="59" font-size="7" fill="var(--muted)" font-family="Geist, sans-serif">mika@example.com</text>
+                      <rect x="54" y="70" width="132" height="16" rx="3" fill="var(--soft)" stroke="var(--bad)" stroke-width="1.5"/>
+                      <text x="59" y="81" font-size="8" fill="var(--muted)" font-family="Geist, sans-serif">••••••••</text>
+                      <text x="54" y="96" font-size="7" font-weight="600" fill="var(--bad)" font-family="Geist, sans-serif">Wrong email or password</text>
+                      <rect x="54" y="104" width="132" height="16" rx="3" fill="var(--strong)"/>
+                      <text x="120" y="115" text-anchor="middle" font-size="7.5" font-weight="600" fill="var(--bg)" font-family="Geist, sans-serif">Sign in</text>
+                    </svg>
+                  </td>
+                </tr>
+                <tr>
+                  <td>密码错误时没有任何提示。<br>A wrong password shows nothing.</td>
+                  <td>密码错误时会显示错误。<br>A wrong password shows an error.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <hr>
+          <details class="blk">
+            <summary>🇨🇳 详细信息（供智能体阅读）<span class="hint">collapsed</span></summary>
+            <div class="inner">
+              <h4>摘要</h4>
+              <p>登录表单把API返回的<code>401</code>显示为密码框下方的错误。</p>
+              <h4>原因</h4>
+              <p>用户平均重试4次后才重置密码（支持工单ENG-412）。</p>
+              <h4>改动</h4>
+              <ul>
+                <li><code>LoginForm.vue</code>读取<code>error.code</code>并显示消息。</li>
+                <li>在<code>en.json</code>中新增字符串<code>auth.wrongCredentials</code>。</li>
+              </ul>
+              <h4>测试方法</h4>
+              <ul><li><code>pnpm test:e2e login</code>：6个通过。</li></ul>
+              <h4>未测试的内容及原因</h4>
+              <ul><li>Safari 16。没有可用的设备。</li></ul>
+              <h4>截图</h4>
+              <p>见顶部。Chrome，1280×800，base <code>9c1e0d4</code>，head <code>a3f91c2</code>。</p>
+            </div>
+          </details>
+          <details class="blk">
+            <summary>🇬🇧 More details (for agents)<span class="hint">collapsed</span></summary>
+            <div class="inner">
+              <h4>Summary</h4>
+              <p>The sign-in form shows the API's <code>401</code> as an inline error under the password field.</p>
+              <h4>Why</h4>
+              <p>Users retried 4 times on average before they reset their password (support ticket ENG-412).</p>
+              <h4>Changes</h4>
+              <ul>
+                <li><code>LoginForm.vue</code> reads <code>error.code</code> and shows the message.</li>
+                <li>New string <code>auth.wrongCredentials</code> in <code>en.json</code>.</li>
+              </ul>
+              <h4>How it was tested</h4>
+              <ul><li><code>pnpm test:e2e login</code>: 6 passed.</li></ul>
+              <h4>Not tested (and why)</h4>
+              <ul><li>Safari 16. No device available.</li></ul>
+              <h4>Screenshots</h4>
+              <p>At the top. Chrome, 1280×800, base <code>9c1e0d4</code>, head <code>a3f91c2</code>.</p>
+            </div>
+          </details>
+          <p class="footer-line">🤖 Generated with <a href="https://claude.com/claude-code">Claude Code</a> using <a href="https://github.com/clins1994/skills/blob/main/skills/create-pr/SKILL.md">clins:create-pr</a></p>
         </div>
       </div>
     </section>
