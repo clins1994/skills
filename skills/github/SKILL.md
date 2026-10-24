@@ -18,6 +18,8 @@ This skill sends a post to GitHub. The text (lead, details block, language, foot
 
 ## Preflight
 
+This skill uses the `gh` CLI. It does not cover the GitHub MCP server yet ([`CONTRIBUTING.md`](../../CONTRIBUTING.md#ideas) lists it as an open idea). If `gh` is missing, tell the user to install it, and stop.
+
 1. `gh auth status`. For images, also push access to the repo and `gh --version` 2.99 or newer (for `--attach`). If it is older, tell the user to upgrade `gh`, and stop.
 2. `gh repo view --json nameWithOwner,visibility`.
 3. Read the repo's `AGENTS.md`, `CLAUDE.md`, and `.github/` templates. Their headings and required lines win.

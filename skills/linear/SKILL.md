@@ -18,7 +18,7 @@ This skill sends a post to Linear. The text (lead, details block, language, foot
 
 ## Preflight
 
-1. The Linear MCP tools are connected (`save_issue`, `get_issue`, `save_comment`, `list_comments`). If they are deferred, load them first. If they are missing, tell the user to connect the Linear connector, and stop.
+1. The Linear MCP tools are connected (`save_issue`, `get_issue`, `save_comment`, `list_comments`). If they are deferred, load them first. If they are missing, tell the user to connect the Linear connector, and stop. This skill does not cover the Linear GraphQL API yet ([`CONTRIBUTING.md`](../../CONTRIBUTING.md#ideas) lists it as an open idea).
 2. For a new issue, find the team: from the user, the repo's `AGENTS.md`/`CLAUDE.md`, or `list_teams`. Ask if more than one team fits.
 3. Read how the team writes issues: open 2 or 3 recent issues in that team (`list_issues`) for title style, language and labels.
 
