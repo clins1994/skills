@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en" class="dark" style="background-color:#1c1c1c">
+<head>
+<script>
+  // Same theme handling as clins.me: dark unless the visitor picked light.
+  ;(function () {
+    var d = document.documentElement
+    var theme = null
+    try { theme = localStorage.getItem('theme') } catch (e) {}
+    if (theme === 'light') {
+      d.classList.remove('dark')
+      d.style.colorScheme = 'light'
+      d.style.backgroundColor = '#fcfcfc'
+    } else {
+      d.style.colorScheme = 'dark'
+    }
+  })()
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Caio Lins | Skills</title>
+<meta name="description" content="Sample output of Caio's agent skills: post, create-pr, github and linear.">
+<meta name="author" content="Caio Lins">
+<meta name="theme-color" content="#1c1c1c" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fcfcfc" media="(prefers-color-scheme: light)">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+/* Tokens follow clins.me: Geist, #fcfcfc / #1c1c1c, Tailwind's neutral grays, no accent color. */
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+:root {
+  --bg: #fcfcfc;
+  --text: #000;
+  --strong: #171717;
+  --body: #404040;
+  --muted: #737373;
+  --faint: #a3a3a3;
+  --line: #e5e5e5;
+  --soft: #f5f5f5;
+  --hover: #e5e5e5;
+  --pressed-bg: #171717;
+  --pressed-fg: #f5f5f5;
+  --underline: #d4d4d4;
+  --ok: #16a34a;
+  --bad: #dc2626;
+  --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.dark {
+  --bg: #1c1c1c;
+  --text: #a3a3a3;
+  --strong: #f5f5f5;
+  --body: #d4d4d4;
+  --muted: #737373;
+  --faint: #525252;
+  --line: #2e2e2e;
+  --soft: #232323;
+  --hover: #404040;
+  --pressed-bg: #f5f5f5;
+  --pressed-fg: #171717;
+  --underline: #525252;
+  --ok: #4ade80;
+  --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; overflow-y: scroll; }
+::selection { background: #000; color: #fff; }
+.dark ::selection { background: #fff; color: #000; }
+body {
+  margin: 0 auto; max-width: 42rem; min-height: 100vh; padding: 8px 24px 0;
+  font-family: var(--font-sans); font-size: 14px; line-height: 1.5;
+  background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+button { font: inherit; }
+code { font-family: var(--font-mono); font-size: .875em; white-space: nowrap; }
+[hidden] { display: none !important; }
+
+/* Header, as on clins.me */
+.site-header { display: flex; align-items: center; margin-bottom: 20px; }
+.home { position: relative; flex: none; padding-right: 8px; text-decoration: none; }
+.home > span:first-child {
+  display: inline-flex; margin-left: -8px; padding: 4px 8px; border-radius: 16px;
+  font-size: 18px; font-weight: 700; color: var(--strong); white-space: nowrap; transition: background-color .15s;
+}
+.home:hover > span:first-child { background: var(--hover); }
+.tip {
+  pointer-events: none; position: absolute; left: 100%; top: 50%; transform: translateY(-50%); margin-left: 4px;
+  white-space: nowrap; border-radius: 6px; background: var(--pressed-bg); color: var(--pressed-fg);
+  padding: 4px 8px; font-size: 11px; font-weight: 500; opacity: 0; transition: opacity .15s;
+}
+.home:hover .tip, .home:focus-visible .tip { opacity: 1; }
+.icons { flex: 1; display: flex; justify-content: flex-end; align-items: center; color: var(--strong); }
+.icon { padding: 8px; background: none; border: 0; cursor: pointer; color: inherit; display: inline-flex; }
+.icon > span { display: inline-flex; padding: 2px 6px; border-radius: 12px; transition: background-color .15s; }
+.icon:hover > span { background: var(--hover); }
+.icon svg { display: block; }
+.theme-sun { display: none !important; }
+.dark .theme-sun { display: block !important; }
+.dark .theme-moon { display: none !important; }
+
+main { margin: 40px 0; min-height: calc(100vh - 60px); }
+
+/* Intro, like a post title */
+h1 { margin: 0 0 4px; font-size: 24px; line-height: 1.33; font-weight: 700; color: var(--strong); }
+.sub { margin: 0 0 32px; font-size: 14px; color: var(--faint); }
+.dark .sub { color: var(--muted); }
+.intro { margin: 0 0 16px; font-size: 16px; line-height: 1.75; color: var(--body); }
+.install {
+  margin: 0 0 40px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 8px;
+  font-family: var(--font-mono); font-size: 13px; color: var(--strong); overflow-x: auto; white-space: nowrap;
+}
+.install span { color: var(--muted); user-select: none; }
+
+/* Skill tabs, like the homepage filters */
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 32px; }
+.tabs [role="tab"] {
+  cursor: pointer; border: 0; background: none; border-radius: 6px; padding: 4px 8px;
+  font-size: 12px; font-weight: 500; color: var(--muted); transition: background-color .15s, color .15s;
+}
+.tabs [role="tab"]:hover { background: var(--hover); color: var(--strong); }
+.tabs [role="tab"][aria-selected="true"] { background: var(--pressed-bg); color: var(--pressed-fg); }
+.tabs [role="tab"]:focus-visible, .pager a:focus-visible, summary:focus-visible { outline: 2px solid var(--strong); outline-offset: 2px; }
+
+.panel { display: grid; gap: 48px; }
+.skill-intro p { margin: 0; font-size: 16px; line-height: 1.75; color: var(--body); }
+.skill-intro code, .ex-note code { color: var(--strong); }
+section.example { display: grid; gap: 12px; }
+.ex-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.ex-head h2 { margin: 0; font-size: 20px; font-weight: 700; color: var(--strong); }
+.cmd { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.ex-note { margin: 0; color: var(--muted); line-height: 1.6; }
+
+/* Mock of where the post lands (GitHub or Linear), in the site's grays */
+.mock { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; color: var(--body); min-width: 0; }
+.mock-top { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--line); background: var(--soft); font-size: 13px; color: var(--muted); }
+.mock-top b { color: var(--strong); font-weight: 600; }
+.avatar { width: 20px; height: 20px; border-radius: 50%; flex: none; background: var(--faint); }
+.avatar.me { background: var(--strong); }
+.pill { font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.pill.open { border-color: var(--ok); color: var(--ok); }
+.mock-title { margin: 0; padding: 14px 16px 0; font-size: 18px; font-weight: 600; color: var(--strong); }
+.mock-title span { color: var(--muted); font-weight: 400; }
+.md { padding: 14px 16px 16px; min-width: 0; }
+.md > * + * { margin-top: 12px; }
+.md p { margin: 0; }
+.md hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
+.md code { background: var(--soft); padding: 1px 5px; border-radius: 4px; color: var(--strong); }
+.md h4 { margin: 16px 0 4px; font-size: 14px; font-weight: 600; color: var(--strong); }
+.md ul { margin: 4px 0 0; padding-left: 20px; }
+.md li + li { margin-top: 2px; }
+.md li::marker { color: var(--faint); }
+.md a { color: var(--muted); text-decoration: underline; text-decoration-color: var(--underline); text-underline-offset: 2px; }
+.md a:hover { color: var(--strong); }
+.mention { color: var(--strong); font-weight: 600; }
+.lead { color: var(--strong); }
+
+details.blk { border: 1px solid var(--line); border-radius: 6px; }
+details.blk + details.blk { margin-top: 8px; }
+details > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+details > summary::-webkit-details-marker { display: none; }
+details.blk > summary { padding: 8px 12px; font-size: 14px; font-weight: 600; color: var(--strong); }
+details.blk > summary::before, details.lnblk > summary::before { content: "›"; color: var(--muted); display: inline-block; transition: transform .15s; }
+details[open] > summary::before { transform: rotate(90deg); }
+details.blk > .inner { padding: 0 14px 12px; border-top: 1px solid var(--line); }
+.hint { margin-left: auto; font-family: var(--font-mono); font-size: 11px; font-weight: 400; color: var(--muted); }
+.footer-line { font-size: 12px; color: var(--muted); }
+.md > details + .footer-line { margin-top: 20px; }
+.bot { margin-top: 16px; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 6px; font-size: 12px; color: var(--muted); }
+.bot b { color: var(--strong); }
+
+.shots { overflow-x: auto; }
+.shots table { border-collapse: collapse; width: 100%; min-width: 420px; font-size: 13px; }
+.shots th, .shots td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; width: 50%; }
+.shots th { font-weight: 600; color: var(--strong); }
+.shots svg { display: block; width: 100%; height: auto; border-radius: 4px; }
+
+.ln-id { font-family: var(--font-mono); color: var(--strong); }
+.ln-status { display: inline-flex; align-items: center; gap: 6px; }
+.ln-status i { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--muted); }
+details.lnblk { border-left: 2px solid var(--line); padding-left: 12px; }
+details.lnblk > summary { padding: 4px 0; font-weight: 500; color: var(--strong); }
+details.lnblk .inner { padding: 4px 0; }
+
+.diffhead { font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding: 8px 14px; background: var(--soft); border-bottom: 1px solid var(--line); overflow-x: auto; white-space: nowrap; }
+.diffline { font-family: var(--font-mono); font-size: 12px; padding: 4px 14px; white-space: pre; overflow-x: auto; color: var(--strong); }
+.diffline.add { background: color-mix(in srgb, var(--ok) 10%, transparent); }
+.thread { border-top: 1px solid var(--line); }
+.c { display: grid; grid-template-columns: 20px 1fr; gap: 10px; padding: 12px 14px; }
+.c + .c { border-top: 1px solid var(--line); }
+.c > div { min-width: 0; }
+.c.reply { margin-left: 30px; border-top: 0; padding-top: 0; }
+.who { font-size: 13px; color: var(--muted); }
+.who b { color: var(--strong); font-weight: 600; }
+.c p { margin: 4px 0 0; }
+.c .md { padding: 4px 0 0; }
+.labels { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* Prev/next, like the post page */
+.pager { display: flex; justify-content: space-between; margin-top: 48px; font-size: 14px; }
+.pager a { color: var(--muted); text-decoration: none; transition: color .15s; }
+.pager a:hover { color: var(--strong); }
+.pager a[aria-disabled="true"] { visibility: hidden; }
+
+/* Footer, as on clins.me */
+footer { margin-top: 12px; padding: 12px 0 24px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; font-family: var(--font-mono); font-size: 12px; color: #6b7280; }
+.dark footer { color: #9ca3af; }
+footer a { color: #4b5563; text-decoration: none; border-bottom: 1px solid #d1d5db; transition: border-color .15s; }
+footer a:hover { border-color: #4b5563; }
+.dark footer a { color: #fff; border-color: #57534e; }
+.dark footer a:hover { border-color: #fff; }
+
+@media (min-width: 768px) {
+  .site-header { margin-bottom: 40px; }
+}
+@media (max-width: 520px) {
+  .md { padding-left: 12px; padding-right: 12px; }
+  .icon { padding: 6px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <a class="home" href="https://clins.me" aria-label="Home"><span>Caio Lins</span><span class="tip">Home</span></a>
+  <nav class="icons" aria-label="Main navigation">
+    <a class="icon" href="https://github.com/clins1994/skills" target="_blank" rel="noopener noreferrer" aria-label="Source on GitHub">
+      <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></span>
+    </a>
+    <button class="icon" id="theme-toggle" type="button" aria-label="Toggle theme">
+      <span>
+        <svg class="theme-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="theme-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </span>
+    </button>
+  </nav>
+</header>
+
+<main>
+  <h1>Skills</h1>
+  <p class="sub">clins1994/skills · sample text, made up</p>
+  <p class="intro">Four agent skills for writing on GitHub and Linear. People read the lead. The collapsed block holds the full text for agents, or for anyone who wants everything. Pick a skill to see what it writes. Click a block to open it.</p>
+  <div class="install"><span>$ </span>npx skills add clins1994/skills</div>
+
+  <nav class="tabs" role="tablist" aria-label="Skills">
+    <button role="tab" id="tab-post" aria-controls="panel-post" aria-selected="false" tabindex="-1">post</button>
+    <button role="tab" id="tab-create-pr" aria-controls="panel-create-pr" aria-selected="false" tabindex="-1">create-pr</button>
+    <button role="tab" id="tab-github" aria-controls="panel-github" aria-selected="false" tabindex="-1">github</button>
+    <button role="tab" id="tab-linear" aria-controls="panel-linear" aria-selected="false" tabindex="-1">linear</button>
+  </nav>
+
+  <div class="panel" role="tabpanel" id="panel-post" aria-labelledby="tab-post">
+    <div class="skill-intro"><p>The writing format. A lead people read, then the full text in a collapsed block for agents. English by default. <code>--lang ja</code> adds a second language. The other skills use it for their text.</p></div>
+
+    <section class="example">
+      <div class="ex-head"><h2>PR comment, English only</h2><span class="cmd">/clins:post</span></div>
+      <p class="ex-note">The default. One lead that says what changed and what the reader must do, then one collapsed block.</p>
+      <div class="mock">
+        <div class="mock-top"><span class="avatar me"></span><b>clins1994</b> commented 2 minutes ago</div>
+        <div class="md">
+          <p><span class="mention">@mika-tanaka</span></p>
+          <p class="lead">Fixed the retry bug in <code>a3f91c2</code>. Uploads now stop after 3 tries instead of looping. Please review the backoff values.</p>
+          <hr>
+          <details class="blk">
+            <summary>🇬🇧 More details (for agents)<span class="hint">collapsed</span></summary>
+            <div class="inner">
+              <h4>What changed</h4>
+              <ul>
+                <li><code>upload/retry.ts</code> counts attempts per file, not per batch.</li>
+                <li>The backoff is 1 s, 4 s, then 9 s. After the third failure, the job reports <code>UPLOAD_GAVE_UP</code>.</li>
+              </ul>
+              <h4>How it was tested</h4>
+              <ul>
+                <li><code>pnpm test upload</code>: 42 passed.</li>
+                <li>Pulled the network cable during a 300 MB upload. The job stopped after 14 s.</li>
+              </ul>
+            </div>
+          </details>
+          <p class="footer-line">🤖 Generated with <a href="https://claude.com/claude-code">Claude Code</a> using <a href="https://github.com/clins1994/skills/blob/main/skills/post/SKILL.md">clins:post</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="example">
+      <div class="ex-head"><h2>PR comment with a second language</h2><span class="cmd">/clins:post --lang ja</span></div>
+      <p class="ex-note">The Japanese lead comes first, then <code>原文:</code> and the English original. There is one collapsed block per language, and both blocks say the same thing.</p>
+      <div class="mock">
+        <div class="mock-top"><span class="avatar me"></span><b>clins1994</b> commented just now</div>
+        <div class="md">
+          <p class="lead"><code>a3f91c2</code>で再試行のバグを直しました。アップロードは3回で止まります。待ち時間の値を見てください。</p>
+          <p class="lead">原文: Fixed the retry bug in <code>a3f91c2</code>. Uploads now stop after 3 tries. Please review the backoff values.</p>
+          <hr>
+          <details class="blk">
+            <summary>🇯🇵 詳細（エージェント向け）<span class="hint">collapsed</span></summary>
+            <div class="inner">
+              <h4>変更点</h4>
+              <ul>
+                <li><code>upload/retry.ts</code>で、試行回数をファイルごとに数える。</li>
+                <li>待ち時間は1秒、4秒、9秒。3回失敗したら<code>UPLOAD_GAVE_UP</code>を返す。</li>
+              </ul>
+            </div>
+          </details>
+          <details class="blk">
+            <summary>🇬🇧 More details (for agents)<span class="hint">collapsed</span></summary>
+            <div class="inner">
+              <h4>Changes</h4>
+              <ul>
+                <li><code>upload/retry.ts</code> counts attempts per file.</li>
+                <li>The backoff is 1 s, 4 s, then 9 s. After 3 failures, it returns <code>UPLOAD_GAVE_UP</code>.</li>
+              </ul>
+            </div>
+          </details>
+          <p class="footer-line">🤖 Generated with <a href="https://claude.com/claude-code">Claude Code</a> using <a href="https://github.com/clins1994/skills/blob/main/skills/post/SKILL.md">clins:post</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="example">
+      <div class="ex-head"><h2>Short post</h2><span class="cmd">/clins:post</span></div>
+      <p class="ex-note">When the details would only repeat the lead, the post is the lead alone. It has no divider, block or footer.</p>
+      <div class="mock">
+        <div class="mock-top"><span class="avatar me"></span><b>clins1994</b> commented just now</div>
+        <div class="md"><p class="lead">Fixed in <code>b72e019</code>. Please review again.</p></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="panel" role="tabpanel" id="panel-create-pr" aria-labelledby="tab-create-pr" hidden>
+    <div class="skill-intro"><p>Creates a reviewable pull request: exact range, checks, title, before/after images under the lead, and the body from <code>clins:post</code>. Works with any host skill. English by default. <code>--lang zh</code> (or another language) adds a second language.</p></div>
+
+    <section class="example">
+      <div class="ex-head"><h2>PR description with before/after images</h2><span class="cmd">/clins:create-pr</span></div>
+      <p class="ex-note">The images go between the lead and the divider, so a reviewer sees the change before opening anything. The review bot's section stays below the footer, unedited.</p>
+      <div class="mock">
+        <div class="mock-top"><span class="pill open">Open</span><b>clins1994</b> wants to merge 3 commits into <code>main</code></div>
+        <h3 class="mock-title">auth: show an error on a wrong password <span>#128</span></h3>
+        <div class="md">
+          <p class="lead">A wrong password now shows "Wrong email or password" under the form. Please check the copy and the error color in dark mode.</p>
+          <div class="shots">
+            <table>
+              <thead><tr><th>Before</th><th>After</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <svg viewBox="0 0 240 150" role="img" aria-label="Login form with no error message">
+                      <rect width="240" height="150" fill="var(--soft)"/>
+                      <rect x="40" y="18" width="160" height="114" rx="8" fill="var(--bg)" stroke="var(--line)"/>
+                      <text x="120" y="38" text-anchor="middle" font-size="10" font-weight="700" fill="var(--strong)" font-family="Geist, sans-serif">Sign in</text>
+                      <rect x="54" y="48" width="132" height="16" rx="3" fill="var(--soft)" stroke="var(--line)"/>
+                      <text x="59" y="59" font-size="7" fill="var(--muted)" font-family="Geist, sans-serif">mika@example.com</text>
+                      <rect x="54" y="70" width="132" height="16" rx="3" fill="var(--soft)" stroke="var(--line)"/>
+                      <text x="59" y="81" font-size="8" fill="var(--muted)" font-family="Geist, sans-serif">••••••••</text>
+                      <rect x="54" y="104" width="132" height="16" rx="3" fill="var(--strong)"/>
+                      <text x="120" y="115" text-anchor="middle" font-size="7.5" font-weight="600" fill="var(--bg)" font-family="Geist, sans-serif">Sign in</text>
+                    </svg>
+                  </td>
+                  <td>
+                    <svg viewBox="0 0 240 150" role="img" aria-label="Login form showing Wrong email or password">
+                      <rect width="240" height="150" fill="var(--soft)"/>
+                      <rect x="40" y="18" width="160" height="114" rx="8" fill="var(--bg)" stroke="var(--line)"/>
+                      <text x="120" y="38" text-anchor="middle" font-size="10" font-weight="700" fill="var(--strong)" font-family="Geist, sans-serif">Sign in</text>
+                      <rect x="54" y="48" width="132" height="16" rx="3" fill="var(--soft)" stroke="var(--line)"/>
+                      <text x="59" y="59" font-size="7" fill="var(--muted)" font-family="Geist, sans-serif">mika@example.com</text>
+                      <rect x="54" y="70" width="132" height="16" rx="3" fill="var(--soft)" stroke="var(--bad)" stroke-width="1.5"/>
+                      <text x="59" y="81" font-size="8" fill="var(--muted)" font-family="Geist, sans-serif">••••••••</text>
+                      <text x="54" y="96" font-size="7" font-weight="600" fill="var(--bad)" font-family="Geist, sans-serif">Wrong email or password</text>
+                      <rect x="54" y="104" width="132" height="16" rx="3" fill="var(--strong)"/>
+                      <text x="120" y="115" text-anchor="middle" font-size="7.5" font-weight="600" fill="var(--bg)" font-family="Geist, sans-serif">Sign in</text>
+                    </svg>
+                  </td>
+                </tr>
+                <tr>
+                  <td>A wrong password shows nothing.</td>
+                  <td>A wrong password shows an error.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <hr>
+          <details class="blk">
+            <summary>🇬🇧 More details (for agents)<span class="hint">collapsed</span></summary>
+            <div class="inner">
+              <h4>Summary</h4>
+              <p>The sign-in form shows the API's <code>401</code> as an inline error under the password field.</p>
+              <h4>Why</h4>
+              <p>Users retried 4 times on average before they reset their password (support ticket ENG-412).</p>
+              <h4>Changes</h4>
+              <ul>
+                <li><code>LoginForm.vue</code> reads <code>error.code</code> and shows the message.</li>
+                <li>New string <code>auth.wrongCredentials</code> in <code>en.json</code>.</li>
+              </ul>
+              <h4>How it was tested</h4>
+              <ul><li><code>pnpm test:e2e login</code>: 6 passed.</li></ul>
+              <h4>Not tested (and why)</h4>
+              <ul><li>Safari 16. No device available.</li></ul>
+              <h4>Screenshots</h4>
+              <p>At the top. Chrome, 1280×800, base <code>9c1e0d4</code>, head <code>a3f91c2</code>.</p>
+            </div>
+          </details>
+          <p class="footer-line">🤖 Generated with <a href="https://claude.com/claude-code">Claude Code</a> using <a href="https://github.com/clins1994/skills/blob/main/skills/create-pr/SKILL.md">clins:create-pr</a></p>
+          <div class="bot"><b>Review bot summary</b> · added by the review bot after the PR opens. Nobody edits this part.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="example">
+      <div class="ex-head"><h2>PR description in two languages</h2><span class="cmd">/clins:create-pr --lang zh</span></div>
+      <p class="ex-note">The same pull request for a team that reads Chinese. The Chinese lead comes first, then <code>原文:</code> and the English original. The image table carries both languages, and there is one collapsed block per language.</p>
+      <div class="mock">
+        <div class="mock-top"><span class="pill open">Open</span><b>clins1994</b> wants to merge 3 commits into <code>main</code></div>
+        <h3 class="mock-title">auth: show an error on a wrong password <span>#128</span></h3>
+        <div class="md">
+          <p class="lead">密码错误时，表单下方现在会显示“邮箱或密码错误”。请检查文案和深色模式下的错误颜色。</p>
+          <p class="lead">原文: A wrong password now shows "Wrong email or password" under the form. Please check the copy and the error color in dark mode.</p>
+          <div class="shots">
+            <table>
+              <thead><tr><th>之前 / Before</th><th>之后 / After</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <svg viewBox="0 0 240 150" role="img" aria-label="Login form with no error message">
+                      <rect width="240" height="150" fill="var(--soft)"/>
+                      <rect x="40" y="18" width="160" height="114" rx="8" fill="var(--bg)" stroke="var(--line)"/>
+                      <text x="120" y="38" text-anchor="middle" font-size="10" font-weight="700" fill="var(--strong)" font-family="Geist, sans-serif">Sign in</text>
+                      <rect x="54" y="48" width="132" height="16" rx="3" fill="var(--soft)" stroke="var(--line)"/>
+                      <text x="59" y="59" font-size="7" fill="var(--muted)" font-family="Geist, sans-serif">mika@example.com</text>
+                      <rect x="54" y="70" width="132" height="16" rx="3" fill="var(--soft)" stroke="var(--line)"/>
+                      <text x="59" y="81" font-size="8" fill="var(--muted)" font-family="Geist, sans-serif">••••••••</text>
+                      <rect x="54" y="104" width="132" height="16" rx="3" fill="var(--strong)"/>
+                      <text x="120" y="115" text-anchor="middle" font-size="7.5" font-weight="600" fill="var(--bg)" font-family="Geist, sans-serif">Sign in</text>
+                    </svg>
+                  </td>
+                  <td>
+                    <svg viewBox="0 0 240 150" role="img" aria-label="Login form showing Wrong email or password">
+                      <rect width="240" height="150" fill="var(--soft)"/>
+                      <rect x="40" y="18" width="160" height="114" rx="8" fill="var(--bg)" stroke="var(--line)"/>
+                      <text x="120" y="38" text-anchor="middle" font-size="10" font-weight="700" fill="var(--strong)" font-family="Geist, sans-serif">Sign in</text>
+                      <rect x="54" y="48" width="132" height="16" rx="3" fill="var(--soft)" stroke="var(--line)"/>
+                      <text x="59" y="59" font-size="7" fill="var(--muted)" font-family="Geist, sans-serif">mika@example.com</text>
+                      <rect x="54" y="70" width="132" height="16" rx="3" fill="var(--soft)" stroke="var(--bad)" stroke-width="1.5"/>
+                      <text x="59" y="81" font-size="8" fill="var(--muted)" font-family="Geist, sans-serif">••••••••</text>
+                      <text x="54" y="96" font-size="7" font-weight="600" fill="var(--bad)" font-family="Geist, sans-serif">Wrong email or password</text>
+                      <rect x="54" y="104" width="132" height="16" rx="3" fill="var(--strong)"/>
+                      <text x="120" y="115" text-anchor="middle" font-size="7.5" font-weight="600" fill="var(--bg)" font-family="Geist, sans-serif">Sign in</text>
+                    </svg>
+                  </td>
+                </tr>
+                <tr>
+                  <td>密码错误时没有任何提示。<br>A wrong password shows nothing.</td>
+                  <td>密码错误时会显示错误。<br>A wrong password shows an error.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <hr>
+          <details class="blk">
+            <summary>🇨🇳 详细信息（供智能体阅读）<span class="hint">collapsed</span></summary>
+            <div class="inner">
+              <h4>摘要</h4>
+              <p>登录表单把API返回的<code>401</code>显示为密码框下方的错误。</p>
+              <h4>原因</h4>
+              <p>用户平均重试4次后才重置密码（支持工单ENG-412）。</p>
+              <h4>改动</h4>
+              <ul>
+                <li><code>LoginForm.vue</code>读取<code>error.code</code>并显示消息。</li>
+                <li>在<code>en.json</code>中新增字符串<code>auth.wrongCredentials</code>。</li>
+              </ul>
+              <h4>测试方法</h4>
+              <ul><li><code>pnpm test:e2e login</code>：6个通过。</li></ul>
+              <h4>未测试的内容及原因</h4>
+              <ul><li>Safari 16。没有可用的设备。</li></ul>
+              <h4>截图</h4>
+              <p>见顶部。Chrome，1280×800，base <code>9c1e0d4</code>，head <code>a3f91c2</code>。</p>
+            </div>
+          </details>
+          <details class="blk">
+            <summary>🇬🇧 More details (for agents)<span class="hint">collapsed</span></summary>
+            <div class="inner">
+              <h4>Summary</h4>
+              <p>The sign-in form shows the API's <code>401</code> as an inline error under the password field.</p>
+              <h4>Why</h4>
+              <p>Users retried 4 times on average before they reset their password (support ticket ENG-412).</p>
+              <h4>Changes</h4>
+              <ul>
+                <li><code>LoginForm.vue</code> reads <code>error.code</code> and shows the message.</li>
+                <li>New string <code>auth.wrongCredentials</code> in <code>en.json</code>.</li>
+              </ul>
+              <h4>How it was tested</h4>
+              <ul><li><code>pnpm test:e2e login</code>: 6 passed.</li></ul>
+              <h4>Not tested (and why)</h4>
+              <ul><li>Safari 16. No device available.</li></ul>
+              <h4>Screenshots</h4>
+              <p>At the top. Chrome, 1280×800, base <code>9c1e0d4</code>, head <code>a3f91c2</code>.</p>
+            </div>
+          </details>
+          <p class="footer-line">🤖 Generated with <a href="https://claude.com/claude-code">Claude Code</a> using <a href="https://github.com/clins1994/skills/blob/main/skills/create-pr/SKILL.md">clins:create-pr</a></p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="panel" role="tabpanel" id="panel-github" aria-labelledby="tab-github" hidden>
+    <div class="skill-intro"><p>Posts to GitHub with <code>gh</code>: PR bodies with attached images, PR comments, replies in review threads, and issues.</p></div>
+
+    <section class="example">
+      <div class="ex-head"><h2>Reply in a review thread</h2><span class="cmd">/clins:github reply</span></div>
+      <p class="ex-note">The reply goes inside the reviewer's thread, not as a new comment at the bottom. A fix usually needs only a short post.</p>
+      <div class="mock">
+        <div class="diffhead">src/upload/retry.ts · line 42</div>
+        <div class="diffline add">+  const delay = 1000 * attempt ** 2</div>
+        <div class="thread">
+          <div class="c"><span class="avatar"></span><div><div class="who"><b>mika-tanaka</b> · reviewed</div><p>This waits 0 ms on the first attempt. Is that intended?</p></div></div>
+          <div class="c"><span class="avatar me"></span><div><div class="who"><b>clins1994</b> · just now</div><div class="md"><p class="lead">No. Fixed in <code>c41d9e0</code>: the first retry now waits 1 s. Please resolve if this looks right.</p></div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="example">
+      <div class="ex-head"><h2>GitHub issue</h2><span class="cmd">/clins:github issue</span></div>
+      <p class="ex-note">Issues use the same format, with Context, Work and Done when inside the block.</p>
+      <div class="mock">
+        <div class="mock-top"><span class="pill open">Open</span><b>clins1994</b> opened this issue just now<span class="labels"><span class="pill">bug</span><span class="pill">upload</span></span></div>
+        <h3 class="mock-title">Stop retrying uploads after 3 attempts <span>#131</span></h3>
+        <div class="md">
+          <p class="lead">Large uploads retry forever when the network drops. Cap the retries at 3. This is done when the job reports <code>UPLOAD_GAVE_UP</code>.</p>
+          <hr>
+          <details class="blk">
+            <summary>🇬🇧 More details (for agents)<span class="hint">collapsed</span></summary>
+            <div class="inner">
+              <h4>Context</h4>
+              <p><code>upload/retry.ts</code> counts attempts per batch, so one bad file resets the counter.</p>
+              <h4>Work</h4>
+              <ul><li>Count attempts per file.</li><li>Back off 1 s, 4 s, then 9 s.</li></ul>
+              <h4>Done when</h4>
+              <ul><li>A test pulls the network mid-upload and sees <code>UPLOAD_GAVE_UP</code> after 3 tries.</li></ul>
+            </div>
+          </details>
+          <p class="footer-line">🤖 Generated with <a href="https://claude.com/claude-code">Claude Code</a> using <a href="https://github.com/clins1994/skills/blob/main/skills/github/SKILL.md">clins:github</a></p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="panel" role="tabpanel" id="panel-linear" aria-labelledby="tab-linear" hidden>
+    <div class="skill-intro"><p>Posts to Linear: new issues with fields, safe description updates, comments, and replies in threads.</p></div>
+
+    <section class="example">
+      <div class="ex-head"><h2>Linear issue</h2><span class="cmd">/clins:linear issue</span></div>
+      <p class="ex-note">The same format on Linear. The collapsible block uses Linear's <code>&gt;&gt;&gt;</code> syntax instead of <code>&lt;details&gt;</code>.</p>
+      <div class="mock">
+        <div class="mock-top"><span class="ln-id">ENG-431</span><span class="ln-status"><i></i>Todo</span><span>· Assigned to clins1994</span></div>
+        <h3 class="mock-title">Show an error on a wrong password</h3>
+        <div class="md">
+          <p class="lead">The sign-in form shows nothing when the password is wrong. Add an inline error. This is done when the e2e test for a wrong password passes.</p>
+          <hr>
+          <details class="lnblk">
+            <summary>🇬🇧 More details (for agents)</summary>
+            <div class="inner">
+              <h4>Context</h4>
+              <p>The API returns <code>401</code> with <code>code: "wrong_credentials"</code>. The form ignores it.</p>
+              <h4>Work</h4>
+              <ul><li>Show the message under the password field.</li><li>Add the string to <code>en.json</code>.</li></ul>
+              <h4>Done when</h4>
+              <ul><li><code>pnpm test:e2e login</code> covers a wrong password and passes.</li></ul>
+            </div>
+          </details>
+          <p class="footer-line">🤖 Generated with <a href="https://claude.com/claude-code">Claude Code</a> using <a href="https://github.com/clins1994/skills/blob/main/skills/linear/SKILL.md">clins:linear</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="example">
+      <div class="ex-head"><h2>Linear comment and thread reply</h2><span class="cmd">/clins:linear reply</span></div>
+      <p class="ex-note">A reply stays in its thread. When the details would only repeat the lead, the reply is just the lead.</p>
+      <div class="mock">
+        <div class="mock-top"><span class="ln-id">ENG-431</span><span>· Activity</span></div>
+        <div class="c"><span class="avatar"></span><div><div class="who"><b>Mika Tanaka</b> · 1h ago</div><p>Does this also cover the reset-password form?</p></div></div>
+        <div class="c reply"><span class="avatar me"></span><div><div class="who"><b>Caio Lins</b> · just now</div><div class="md"><p class="lead">Not yet. I filed ENG-436 for the reset form, so this issue can close when the sign-in error ships.</p></div></div></div>
+      </div>
+    </section>
+  </div>
+
+  <nav class="pager" aria-label="Skill navigation">
+    <a href="#" id="prev" title="← arrow key">←</a>
+    <a href="#" id="next" title="→ arrow key">→</a>
+  </nav>
+</main>
+
+<footer>
+  <div>Caio Lins (<a href="https://github.com/clins1994" target="_blank" rel="noopener noreferrer">@clins1994</a>)</div>
+  <div><a href="https://github.com/clins1994/skills" target="_blank" rel="noopener noreferrer">Source</a> · <a href="https://clins.me">clins.me</a></div>
+</footer>
+
+<script>
+  document.getElementById('theme-toggle').addEventListener('click', function () {
+    var d = document.documentElement
+    var isDark = d.classList.toggle('dark')
+    try { localStorage.setItem('theme', isDark ? 'dark' : 'light') } catch (e) {}
+    d.style.colorScheme = isDark ? 'dark' : 'light'
+    d.style.backgroundColor = isDark ? '#1c1c1c' : '#fcfcfc'
+  })
+
+  ;(function () {
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'))
+    var keys = tabs.map(function (t) { return t.id.slice(4) })
+    var prev = document.getElementById('prev')
+    var next = document.getElementById('next')
+    var cur = 0
+
+    function show(i, focus) {
+      cur = Math.max(0, Math.min(tabs.length - 1, i))
+      tabs.forEach(function (t, j) {
+        var on = j === cur
+        t.setAttribute('aria-selected', on)
+        t.tabIndex = on ? 0 : -1
+        document.getElementById('panel-' + keys[j]).hidden = !on
+      })
+      if (focus) tabs[cur].focus()
+      prev.setAttribute('aria-disabled', cur === 0)
+      next.setAttribute('aria-disabled', cur === tabs.length - 1)
+      prev.textContent = cur > 0 ? '← ' + keys[cur - 1] : '←'
+      next.textContent = cur < tabs.length - 1 ? keys[cur + 1] + ' →' : '→'
+      try { history.replaceState(null, '', '#' + keys[cur]) } catch (e) {}
+    }
+
+    tabs.forEach(function (t, i) { t.addEventListener('click', function () { show(i) }) })
+    prev.addEventListener('click', function (e) { e.preventDefault(); show(cur - 1); scrollTo({ top: 0 }) })
+    next.addEventListener('click', function (e) { e.preventDefault(); show(cur + 1); scrollTo({ top: 0 }) })
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+      var onTab = e.target.getAttribute && e.target.getAttribute('role') === 'tab'
+      e.preventDefault()
+      show(cur + (e.key === 'ArrowRight' ? 1 : -1), onTab)
+    })
+
+    var start = keys.indexOf(location.hash.slice(1))
+    show(start < 0 ? 0 : start)
+  })()
+</script>
+</body>
+</html>
