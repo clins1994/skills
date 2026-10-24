@@ -20,9 +20,10 @@ This skill sends a post to GitHub. The text (lead, details block, language, foot
 
 This skill uses the `gh` CLI. It does not cover the GitHub MCP server yet ([`CONTRIBUTING.md`](../../CONTRIBUTING.md#ideas) lists it as an open idea). If `gh` is missing, tell the user to install it, and stop.
 
-1. `gh auth status`. For images, also push access to the repo and `gh --version` 2.99 or newer (for `--attach`). If it is older, tell the user to upgrade `gh`, and stop.
-2. `gh repo view --json nameWithOwner,visibility`.
-3. Read the repo's `AGENTS.md`, `CLAUDE.md`, and `.github/` templates. Their headings and required lines win.
+1. `gh auth status`.
+2. For images, make sure that you have write access to the repo that gets the PR: `gh api repos/<owner>/<repo> --jq .permissions.push`. A PR from a fork to an upstream repo usually has none. If the answer is `false`, use the placeholder path in "Pull request body with images". If it is `true`, also make sure that `gh --version` is 2.99 or newer (for `--attach`). If it is older, tell the user to upgrade `gh`, and stop.
+3. `gh repo view --json nameWithOwner,visibility`.
+4. Read the repo's `AGENTS.md`, `CLAUDE.md`, and `.github/` templates. Their headings and required lines win.
 
 ## GitHub syntax
 
@@ -57,6 +58,18 @@ Every `--attach` path must match a path in the body exactly. `gh` uploads each f
 
    Every line must be `200 image/...` or `200 video/...`.
 3. In a private repo, an unauthenticated request to `github.com/user-attachments/...` returns 404 even when members see the image. That is expected.
+
+### Without write access
+
+`gh --attach` needs write access to the repo. Without it, `gh pr create` and `gh pr edit` fail with "attaching files requires write access to the repository". The GitHub API has no other supported upload. So the user adds the images in the browser:
+
+1. Replace each image in the body with a placeholder in the same table cell. The placeholder names the file, for example `` 📎 **Paste `login-before.png` here** ``. Keep the caption row.
+2. Post the full title and body without `--attach`.
+3. Make sure that no `./` path is left in the body from `gh pr view`.
+4. Tell the user the local path of each image. Ask them to open the PR in the browser, edit the description, and paste each image over its placeholder. The web editor uploads images for any account that can edit the PR.
+5. After the user says the images are in, run the render check above.
+
+Do not call undocumented upload endpoints (for example `uploads.github.com/user-attachments/assets`). Do not commit the images to the repo as a workaround.
 
 ## PR comment
 
