@@ -31,7 +31,7 @@ The plugin names each skill `clins:<skill>`, for example `/clins:post`. The skil
 
 | Skill | What it does |
 |-------|--------------|
-| [post](skills/post/SKILL.md) | The writing format: a short lead for people, then the full text in a collapsed "🇬🇧 More details (for agents)" block. English by default. `--lang ja` (or another language) adds a translated lead and a second block. Includes a check script. |
+| [post](skills/post/SKILL.md) | The writing format: a short lead for people, then the full text in a collapsed "🇬🇧 More details" block. English by default. `--lang ja` (or another language) adds a translated lead and a second block. Includes a check script. |
 | [create-pr](skills/create-pr/SKILL.md) | Creates or updates a reviewable pull request: exact range, checks, title, before/after images right under the lead, body from `post`. Works with any host. Never merges. |
 | [github](skills/github/SKILL.md) | Posts to GitHub with `gh`: PR bodies with images uploaded by `gh --attach` and a render check, PR comments, replies in review threads, and issues. |
 | [linear](skills/linear/SKILL.md) | Posts to Linear through its MCP server: new issues with fields, safe description updates with `patch`, comments and thread replies. |

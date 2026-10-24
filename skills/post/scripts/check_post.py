@@ -3,7 +3,7 @@
 
     python3 check_post.py --platform github post.md
     python3 check_post.py --platform linear --lang ja post.md
-    python3 check_post.py --lang pt --title "🇧🇷 Mais detalhes (para agentes)" --label "Original" post.md
+    python3 check_post.py --lang pt --title "🇧🇷 Mais detalhes" --label "Original" post.md
     gh pr view 12 --json body -q .body | python3 check_post.py -
 
 Exit code 1 means at least one error. Text below the footer is not checked:
@@ -15,8 +15,8 @@ import argparse
 import re
 import sys
 
-EN_TITLE = "🇬🇧 More details (for agents)"
-KNOWN = {"ja": ("🇯🇵 詳細（エージェント向け）", "原文")}
+EN_TITLE = "🇬🇧 More details"
+KNOWN = {"ja": ("🇯🇵 詳細", "原文")}
 def footer(skill: str = "post") -> str:
     return ("🤖 Generated with [Claude Code](https://claude.com/claude-code) using "
             f"[clins:{skill}](https://github.com/clins1994/skills/blob/main/skills/{skill}/SKILL.md)")
@@ -81,6 +81,8 @@ def check(text: str, platform: str | None, lang: str | None, title: str | None, 
         err.append("The post contains @greptileai.")
     if re.search(r"<details\s+open", text):
         err.append("A block is open (<details open>). Every block must be collapsed.")
+    if re.search(r"<summary>\s*<h[1-6]", text):
+        err.append("A heading in <summary> doubles the gap under the divider. Use <b> instead.")
     if platform == "github" and LINEAR.search(text):
         err.append("Linear block syntax (>>>) in a GitHub post.")
     if platform == "linear" and GITHUB.search(text):

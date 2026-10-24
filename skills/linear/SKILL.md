@@ -24,7 +24,7 @@ This skill sends a post to Linear. The text (lead, details block, language, foot
 
 ## Linear syntax
 
-- Collapsed block: `>>> 🇬🇧 More details (for agents)`, a blank line, the content, a blank line, `>>>`. Never GitHub's `<details>`.
+- Collapsed block: `>>> 🇬🇧 More details`, a blank line, the content, a blank line, `>>>`. Never GitHub's `<details>`.
 - Do not put a collapsed block inside a list.
 - Divider: `---` with blank lines around it.
 - Mention: `@displayName` (the Linear display name, not a GitHub login).
