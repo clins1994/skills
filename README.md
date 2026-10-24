@@ -43,6 +43,10 @@ linear ─────► post (text)
 
 `post` owns the text. `github` and `linear` own the platform: syntax, commands and updates. `create-pr` owns the pull request workflow and works with any host skill, so a `gitlab` skill can sit next to `github` later.
 
+## Contributing
+
+Ideas and pull requests are welcome. Some starting points: a Linear API path for `linear`, a GitHub MCP path for `github`, and a `gitlab` host skill for `create-pr`. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Credits
 
 `post` builds on these public skills, and works better with them installed:
