@@ -2,7 +2,7 @@
 
 My [agent skills](https://agentskills.io/home) for coding agents (Claude Code, Codex, Cursor, OpenCode and [others](https://github.com/vercel-labs/skills#supported-agents)). They are small and repository-agnostic: install once, then use them in any repo. Each skill reads the repo's own rules (`AGENTS.md`, `CLAUDE.md`, templates) before it writes anything.
 
-See what each skill writes in the [demo](https://skills.clins.me).
+See what each skill writes in the [demo](https://clins.me/skills).
 
 Layout inspired by [antfu/skills](https://github.com/antfu/skills) and [mattpocock/skills](https://github.com/mattpocock/skills).
 

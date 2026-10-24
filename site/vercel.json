@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "skills.clins.me" }],
+      "destination": "https://clins.me/skills",
+      "permanent": false
+    }
+  ]
+}
