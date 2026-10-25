@@ -1,0 +1,18 @@
+{
+  "description": "clins:fork-review guard: asks or blocks before `gh pr create` opens a PR straight on an upstream repo, when the user's clins:fork-review setting wants a fork review first. Does nothing without that setting.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(*gh pr create*)",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/fork-review/scripts/pr_guard.py\"",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}
