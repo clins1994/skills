@@ -34,7 +34,7 @@ A round can wait up to 10 minutes for a bot, so a full run can take an hour. Run
 ## Setup
 
 1. **The PR.** Use the number or URL the user gave. Else: `gh pr list --head "$(git branch --show-current)" --json number,url`. One PR per run. If there is none, say so and stop.
-2. Take `<owner>/<repo>` from the PR URL, and pass `-R <owner>/<repo>` to every `gh` call. The PR can live on a fork ([`clins:fork-review`](../fork-review/SKILL.md)), and `gh` without `-R` finds the PR through `origin`, which is often the wrong repo. Then read `gh pr view <n> -R <owner>/<repo> --json headRefName,headRefOid,baseRefName,isCrossRepository`. If the head branch is in a fork you cannot push to, say so and stop.
+2. Take `<owner>/<repo>` from the PR URL, and pass `-R <owner>/<repo>` to every `gh` call. The PR can live on a fork, and `gh` without `-R` finds the PR through `origin`, which is often the wrong repo. Then read `gh pr view <n> -R <owner>/<repo> --json headRefName,headRefOid,baseRefName,isCrossRepository`. If the head branch is in a fork you cannot push to, say so and stop.
 3. Check out the head branch and pull it (fast-forward only). If the working tree has changes that are not yours, stop and ask. With a push override, work in its folder instead, and skip the checkout.
 4. Read `AGENTS.md`, `CLAUDE.md` and `CONTRIBUTING.md`: CI notes, the formatter and lint commands, commit message style, and any review-bot config.
 5. **Find the reviewers.** List who has reviewed or commented: `gh pr view <n> --json reviews,comments,latestReviews`, and the check runs on the head. Sort each author into:
@@ -89,7 +89,7 @@ Before you push, record what each bot's skill needs to tell its next review from
 
 ### Push override
 
-Some PRs are not pushed with `git push`. For example, a Raycast extension lives in its own repo, and its PR branch on `raycast/extensions` is written only by Raycast's publish command ([`clins:raycast-publish`](../raycast-publish/SKILL.md)). The caller then passes:
+Some PRs are not pushed with `git push`: their branch is written by another tool, for example a store's publish command that runs from a different repo. The caller then passes:
 
 - a **working folder**: where to edit and commit, instead of a checkout of the head branch,
 - a **push command**: what to run from that folder after each commit, instead of `git push`.
