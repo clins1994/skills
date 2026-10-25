@@ -49,6 +49,7 @@ def parse_command(command):
     rest = command[m.end():]
     # Tokenize first, so a separator inside a quoted title doesn't end the command.
     lexer = shlex.shlex(rest, posix=True, punctuation_chars=";&|()<>\n")
+    lexer.commenters = ""
     lexer.whitespace_split = True
     lexer.whitespace = " \t\r"
     words = []
@@ -246,6 +247,8 @@ def self_test():
     assert parse_command("gh pr create --title 'a && b | c' -R a/b\ngh pr create -R x/y") == \
         {"repo": "a/b"}
     assert parse_command("gh pr create -B main; gh pr create -R x/y") == {"base": "main"}
+    assert parse_command("gh pr create --head me:fix#123 -R up/repo") == \
+        {"head": "me:fix#123", "repo": "up/repo"}
 
     assert parse_setting("mode fork; review /greploop, then @alice") == {"mode": "fork"}
     assert parse_setting("mode bogus") == {}
