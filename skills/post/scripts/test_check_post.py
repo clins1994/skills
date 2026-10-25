@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Tests for check_post.py. Run: python3 test_check_post.py"""
 import pathlib
+import re
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from check_post import EN_TITLE, FOOTER, check, footer, read_minutes  # noqa: E402
+from check_post import EN_TITLE, FOOTER, check, footer, read_minutes, summary_lines  # noqa: E402
 
 GH_EN = f"""Adds retry to the upload step. Please review the backoff values.
 
@@ -185,9 +186,33 @@ READS = [
     ("501 japanese characters is 2 minutes", "あ" * 501, 2),
     ("100 words and 250 characters is 1 minute", "word " * 100 + "あ" * 250, 1),
     ("URLs and markup do not count", "[text](https://example.com/" + "a/" * 500 + ") <b>x</b> - | ---" * 100, 1),
+    ("comparisons in code are read, not taken as HTML",
+     "```\nif x < limit:\n" + "    total = total + step\n" * 100 + "if x > limit:\n```", 2),
+    ("comparisons across lines in prose are read", "x < y\n" + "word " * 200 + "\ny > x", 2),
+    ("thai counts characters", "ก" * 501, 2),
+]
+
+# summary_lines: what --read-time prints must pass check(), also with a custom title.
+CUSTOM = GH_EN.replace(EN_TITLE, "🇺🇸 More details")
+SUMMARIES = [
+    ("built-in title", GH_EN, {}, {}, dict(), ["🇬🇧 More details · 1 min read"]),
+    ("custom title for a built-in language", CUSTOM.replace("1 min read", "9 min read"), {"en": "🇺🇸 More details"}, {},
+     dict(titles={"en": "🇺🇸 More details"}), ["🇺🇸 More details · 1 min read"]),
+    ("custom title and read time", CUSTOM.replace("1 min read", "x"), {"xx": "🇺🇸 More details"}, {"xx": "{n} xx"},
+     dict(langs=["xx"], titles={"xx": "🇺🇸 More details"}, reads={"xx": "{n} xx"}), ["🇺🇸 More details · 1 xx"]),
 ]
 
 failed = 0
+for name, text, titles, reads, kw, want in SUMMARIES:
+    got = list(summary_lines(text, titles, reads))
+    fixed = text
+    for line in got:
+        t = line.partition(" · ")[0]
+        fixed = re.sub(rf"(<b>{re.escape(t)}</b>) · [^<]*", lambda m: f"{m[1]} · {line.partition(' · ')[2]}", fixed)
+    errs = check(fixed, None, kw.get("langs"), None, kw.get("titles"), None, None, False, kw.get("reads"))
+    ok = got == want and not errs
+    print(("ok  " if ok else "FAIL"), "summary:", name, "" if ok else (got, errs))
+    failed += not ok
 for name, body, want in READS:
     got = read_minutes(body)
     print(("ok  " if got == want else "FAIL"), name, "" if got == want else got)

@@ -70,10 +70,10 @@ WORD_LIMIT = 30
 TIGHT_MIX = {"ja"}
 # Read time: 200 words a minute (adults read english non-fiction at about 238, Brysbaert 2019,
 # and technical text is slower), and 500 characters a minute for text without spaces
-# (Medium's rate for chinese, japanese and korean). Rounded up, at least 1 minute.
+# (Medium's rate for chinese, japanese and korean, used for thai too). Rounded up, at least 1 minute.
 WPM = 200
 CPM = 500
-WIDE = "぀-ヿ㐀-鿿가-힯"
+WIDE = "぀-ヿ㐀-鿿가-힯฀-๿"
 READ_SEP = " · "
 
 GITHUB = re.compile(r"<details[^>]*>\s*<summary>(?P<t>.*?)</summary>\n\n(?P<b>.*?)\n</details>", re.S)
@@ -114,10 +114,28 @@ def read_minutes(body: str) -> int:
     """Minutes to read a block: what the reader sees, without URLs, HTML or Markdown marks."""
     text = re.sub(r"!\[[^\]]*\]\([^)]*\)", " ", body)
     text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
-    text = re.sub(r"<[^>]+>|https?://\S+", " ", text)
+    # Strip HTML tags only outside code, and never across lines: code such as `a < b` is read.
+    parts = re.split(r"(^```.*?^```|`[^`\n]*`)", text, flags=re.S | re.M)
+    text = "".join(p if i % 2 else re.sub(r"</?[A-Za-z][^<>\n]*>", " ", p) for i, p in enumerate(parts))
+    text = re.sub(r"https?://\S+", " ", text)
     chars = len(re.findall(f"[{WIDE}]", text))
     words = [w for w in re.sub(f"[{WIDE}]", " ", text).split() if re.search(r"\w", w)]
     return max(1, -(-(chars * WPM + len(words) * CPM) // (WPM * CPM)))
+
+
+def summary_lines(text: str, titles: dict[str, str] | None = None, reads: dict[str, str] | None = None):
+    """Each block's summary line, "<title> · <read time>", as check() wants it."""
+    titles, reads = titles or {}, reads or {}
+    phrase = {}
+    for code in [*KNOWN, *titles, *reads]:
+        title = titles.get(code) or KNOWN.get(code, (None,) * 3)[0]
+        read = reads.get(code) or KNOWN.get(code, (None,) * 3)[2]
+        if title and read:
+            phrase[title] = read
+    for rx in (GITHUB, LINEAR):
+        for m in rx.finditer(text):
+            title = re.sub(r"<[^>]+>", "", m["t"]).strip().partition(READ_SEP)[0]
+            yield f"{title}{READ_SEP}{phrase.get(title, '{n} min').format(n=read_minutes(m['b']))}"
 
 
 def base(lang: str) -> str:
@@ -287,15 +305,8 @@ def main() -> int:
     if foot:
         text = text[: foot.end()] + "\n"  # Bot sections below the footer are not ours.
     if a.read_time:
-        titles = pairs(a.title, "--title")
-        reads = {t: r for t, _, r in KNOWN.values()}
-        for code, r in pairs(a.read, "--read").items():
-            reads[titles.get(code) or KNOWN.get(code, (code,))[0]] = r
-        for rx in (GITHUB, LINEAR):
-            for m in rx.finditer(text):
-                title = re.sub(r"<[^>]+>", "", m["t"]).strip().partition(READ_SEP)[0]
-                phrase = reads.get(title, "{n} min")
-                print(f"{title}{READ_SEP}{phrase.format(n=read_minutes(m['b']))}")
+        for line in summary_lines(text, pairs(a.title, "--title"), pairs(a.read, "--read")):
+            print(line)
         return 0
     langs = [l.strip() for l in a.langs.split(",") if l.strip()]
     errors = check(text, a.platform, langs, a.source, pairs(a.title, "--title"), pairs(a.label, "--label"), a.skill,
