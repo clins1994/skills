@@ -77,7 +77,7 @@ Fetch each body (`gh pr view <url> --json body -q .body`, `gh issue view`, or `g
    python3 <new-folder>/skills/post/scripts/check_post.py --platform <github|linear> --langs auto body.md
    ```
 
-   It prints the languages it found, then the errors. If it says the post must start with a lead, not a heading, run it again with `--template`.
+   It prints the languages it found, then the errors. If it says the post must start with a lead, not a heading, run it again with `--template`. If no language has a block title, ask the user for that language's code, "original" label and read time, and run it again with `--title`, `--label` and `--read`. Under "no dry run", report the post and skip it.
 3. Match each error to the migrations. An error that no migration fixes goes in **Left as is**.
 4. No errors that a migration fixes: the post is up to date.
 5. Otherwise, apply the matched migrations to a copy, oldest version first, and check the copy again. One fix can show an error that another one hid: the read time is checked only on a current block title, so a post with an old title shows the read-time error only after `0.1.3`. Add the migrations for the new errors, and repeat until the check shows no error that a migration fixes. The plan is every migration you applied to the copy.

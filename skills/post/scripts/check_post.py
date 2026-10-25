@@ -184,21 +184,27 @@ def parse(text: str, template: bool = False):
     return blocks, lines, paras
 
 
-def detect(text: str, template: bool = False) -> tuple[list[str], str]:
-    """The post's languages, in block order, and its source: the language whose lead
-    carries the lead language's "original" label, or else the lead language."""
-    by_title = {**LEGACY, **{t: code for code, (t, _, _) in reversed(KNOWN.items())}}
+def detect(text: str, template: bool = False, titles: dict[str, str] | None = None,
+           labels: dict[str, str] | None = None) -> tuple[list[str], str, list[str]]:
+    """The post's languages, in block order, its source (the language whose lead carries the
+    lead language's "original" label, or else the lead language), and the block titles that
+    match no language. Pass titles and labels for languages that are not built in."""
+    titles, labels = titles or {}, labels or {}
+    by_title = {**LEGACY, **{t: code for code, (t, _, _) in reversed(KNOWN.items())},
+                **{t: code for code, t in titles.items()}}
     blocks, _, paras = parse(text, template)
-    langs = []
+    langs, unknown = [], []
     for _, title, _, _ in blocks:
-        if title in by_title and by_title[title] not in langs:
+        if title not in by_title:
+            unknown.append(title)
+        elif by_title[title] not in langs:
             langs.append(by_title[title])
     langs = langs or ["en"]
-    label = KNOWN[langs[0]][1]
+    label = labels.get(langs[0]) or KNOWN.get(langs[0], (None,) * 3)[1]
     for lang, para in zip(langs[1:], paras[1:len(langs)]):
-        if para.startswith(f"{label}:"):
-            return langs, lang
-    return langs, langs[0]
+        if label and para.startswith(f"{label}:"):
+            return langs, lang, unknown
+    return langs, langs[0], unknown
 
 
 def check(text: str, platform: str | None, langs: list[str] | None = None, source: str | None = None,
@@ -339,9 +345,14 @@ def main() -> int:
     langs = [l.strip() for l in a.langs.split(",") if l.strip()]
     source = a.source
     if langs == ["auto"]:
-        langs, found = detect(text, a.template)
+        langs, found, unknown = detect(text, a.template, pairs(a.title, "--title"), pairs(a.label, "--label"))
         source = source or found
         print(f"langs: {','.join(langs)}, source: {source}")
+        for t in unknown:
+            print(f"error: No language has the block title {t!r}. Pass --title code={t}, "
+                  "and --label and --read for that code.")
+        if unknown:
+            return 1
     errors = check(text, a.platform, langs, source, pairs(a.title, "--title"), pairs(a.label, "--label"), a.skill,
                    a.template, pairs(a.read, "--read"))
     for e in errors:
