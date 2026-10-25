@@ -58,11 +58,13 @@ When an account's `version` is the current version, say "`<account>`: up to date
 For each account that runs:
 
 ```bash
-gh search prs --author @me --state open --limit 200 --json url,repository,number,title
-gh search issues --author @me --state open --limit 200 --json url,repository,number,title
+gh search prs --author @me --state open --limit 1000 --json url,repository,number,title
+gh search issues --author @me --state open --limit 1000 --json url,repository,number,title
 ```
 
-For Linear, list the issues the user created (`creator: "me"`) that are not done or canceled. Ask only for the fields you need, since descriptions are long. When the account has a last run, pass `updatedAt` with that date: a post written or migrated since then was updated then.
+GitHub search returns at most 1000 results. If a search returns 1000, some posts can be missing: say so in the report, and do not record the account in step 8.
+
+For Linear, list all the issues the user created (`creator: "me"`) that are not done or canceled, and read every page. Ask only for the fields you need, since descriptions are long. Do not filter by `updatedAt`: a post that needed no change in the last run was not updated then, but a new migration can apply to it.
 
 Fetch each body (`gh pr view <url> --json body -q .body`, `gh issue view`, or `get_issue`) and keep only the ones with the clins footer.
 
@@ -78,6 +80,7 @@ Fetch each body (`gh pr view <url> --json body -q .body`, `gh issue view`, or `g
    It prints the languages it found, then the errors. If it says the post must start with a lead, not a heading, run it again with `--template`.
 3. Match each error to the migrations. An error that no migration fixes goes in **Left as is**.
 4. No errors that a migration fixes: the post is up to date.
+5. Otherwise, apply the matched migrations to a copy, oldest version first, and check the copy again. One fix can show an error that another one hid: the read time is checked only on a current block title, so a post with an old title shows the read-time error only after `0.1.3`. Add the migrations for the new errors, and repeat until the check shows no error that a migration fixes. The plan is every migration you applied to the copy.
 
 ### 6. Dry run
 
@@ -92,16 +95,16 @@ Show one table for all accounts, then ask once (with the question tool, if the a
 
 ### 7. Apply, one post at a time
 
-1. Save the current body to `~/.config/clins/migrate-posts/backups/<date>/<host>-<owner>-<repo>-<number>.md` (`linear-<ID>.md` for Linear).
-2. Fetch it again. If it differs from the plan, plan it again and, outside "no dry run", ask again.
-3. Apply the migrations, oldest version first, exactly as written.
-4. Check the new text. The errors you fixed are gone and no new error appears. Otherwise, do not write the post. Report it.
+1. Fetch it again. If it differs from the plan, plan it again and, outside "no dry run", ask again.
+2. Save the body you just fetched, the one you will change, to `~/.config/clins/migrate-posts/backups/<date>/<host>-<owner>-<repo>-<number>.md` (`linear-<ID>.md` for Linear).
+3. Apply the planned migrations, oldest version first, exactly as written.
+4. Check the new text. Only the **Left as is** errors may remain. Otherwise, do not write the post. Report it.
 5. Write it with the host skill: [`clins:github`](../github/SKILL.md) (`gh pr edit` or `gh issue edit` with `--body-file`, the part below the footer put back unchanged) or [`clins:linear`](../linear/SKILL.md) (`save_issue` with `patch`, only the lines that change).
 6. Fetch it once more, and make sure that it matches what you wrote.
 
 ### 8. Record and report
 
-For each account where every post is now up to date, or was skipped on purpose, write the current version and today's date to the state file. Do not record an account with a failed post, so the next run tries it again.
+For each account where every post is now up to date, or was skipped on purpose, write the current version and today's date to the state file. Do not record an account with a failed post, or with a search that hit the limit, so the next run tries it again.
 
 Report the table with the results, the backup folder, and the "Left as is" errors. A person fixes those with `clins:post` ("Updating a post") if they want to.
 
