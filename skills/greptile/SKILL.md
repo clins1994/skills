@@ -83,7 +83,9 @@ A review request is a command to the bot, not a post: do not write it with `clin
 
 ## Waiting for a review
 
-Wait for a **new** Greptile check run to complete. When you ask for a review without a new commit, the review runs on the same head, and the check run that is already there is the old review.
+After a push or a review request, wait for a **new** Greptile check run to complete. When you ask for a review without a new commit, the review runs on the same head, and the check run that is already there is the old review.
+
+If you did neither (no new commit, and no request because Greptile reviews on push), no new review is coming. Do not run the wait below: use the review for the current head. If its check run is still queued or running, wait for that run to complete.
 
 Before you push or ask for a review, record the ids of the Greptile check runs on the head, and the summary's `updated_at` (for a summary in the PR body, its "Reviews (N)" count):
 
