@@ -54,8 +54,14 @@ query($owner:String!, $repo:String!, $number:Int!, $cursor:String) {
       }
     }
   }
-}' -F owner=<owner> -F repo=<repo> -F number=<n>
+}' -F owner=<owner> -F repo=<repo> -F number=<n> \
+  --jq '.data.repository.pullRequest.reviewThreads | {pageInfo, threads: [.nodes[]
+    | select(.isResolved | not)
+    | {id, isOutdated, c: (.comments.nodes[0] | {databaseId, author: .author.login, path, line,
+        body: (.body | split("<details>")[0] | .[0:2000])})}]}'
 ```
+
+The `--jq` keeps only open threads, and cuts each comment before its first `<details>` block. Greptile puts large "Fix in ..." links and an AI prompt there, often tens of KB per thread. To read one comment in full, fetch it alone: `gh api repos/<owner>/<repo>/pulls/comments/<databaseId> -q .body`.
 
 Keep threads where the first comment's author is `greptile-apps` or `greptile-apps-staging`, and `isResolved` is false. While `hasNextPage` is true, run again with `-F cursor=<endCursor>`. `databaseId` is the id that `clins:github` needs to reply in the thread.
 
