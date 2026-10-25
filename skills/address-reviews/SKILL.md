@@ -75,6 +75,7 @@ A bot comment that comes back after a round where you marked it **won't fix** me
 ### 4. Fix
 
 - Fix the cause, not only the line. When a comment points at a kind of bug (a missing null check, an unescaped value, an unawaited call), look for the same bug in the rest of the PR's diff and fix it there too. This is what makes the next review clean.
+- Before you commit a fix, go through every case that the changed text or code handles, not only the case in the comment. A fix for one case often breaks another. For example, a fix to "wait after a push" must still work when there was no push and no request.
 - Keep each fix to what the comment asked. Do not refactor around it.
 - Update tests and docs when the comment asks for it, or when the fix changes behavior they cover.
 - Run the repo's formatter and lint on the changed files. Find them in the repo (`package.json` scripts, `.pre-commit-config.yaml`, `Makefile`, `.rubocop.yml`, `pyproject.toml`, `AGENTS.md`). Do not guess: a wrong formatter rewrites whole files. When an autofix can change behavior (for example `rubocop -A`), read its diff and undo the changes that have nothing to do with the comment.
