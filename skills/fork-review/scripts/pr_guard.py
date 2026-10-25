@@ -44,28 +44,22 @@ def run(args, cwd=None):
 def strip_comments(text):
     """Drop shell comments: a `#` that starts an unquoted word, up to the line end.
     A `#` inside a word (`fix#123`) or inside quotes stays."""
-    out, quote, i = [], None, 0
+    out, quote, i, word_start = [], None, 0, True
     while i < len(text):
         c = text[i]
+        step = 2 if c == "\\" and quote != "'" and i + 1 < len(text) else 1
         if quote:
-            if c == "\\" and quote == '"' and i + 1 < len(text):
-                out.append(text[i:i + 2])
-                i += 2
-                continue
             if c == quote:
                 quote = None
-        elif c == "\\" and i + 1 < len(text):
-            out.append(text[i:i + 2])
-            i += 2
-            continue
         elif c in "'\"":
             quote = c
-        elif c == "#" and (not out or out[-1][-1] in " \t\n;&|()"):
+        elif c == "#" and word_start:
             end = text.find("\n", i)
             i = len(text) if end < 0 else end
             continue
-        out.append(c)
-        i += 1
+        out.append(text[i:i + step])
+        word_start = not quote and step == 1 and c in " \t\n;&|()"
+        i += step
     return "".join(out)
 
 
@@ -282,6 +276,9 @@ def self_test():
     assert parse_command("gh pr create --title '# not a comment' -R up/repo") == {"repo": "up/repo"}
     assert parse_command("gh pr create --title \"a \\\" # b\" -R up/repo") == {"repo": "up/repo"}
     assert parse_command("gh pr create # -R me/repo\n-R x/y") == {}
+    assert parse_command("gh pr create --title Fix\\ #123 -R up/repo --head me:t") == \
+        {"repo": "up/repo", "head": "me:t"}
+    assert parse_command("gh pr create --title 'it\\' -R up/repo #x") == {"repo": "up/repo"}
 
     assert parse_setting("mode fork; review /greploop, then @alice") == {"mode": "fork"}
     assert parse_setting("mode bogus") == {}
