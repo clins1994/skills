@@ -1,6 +1,6 @@
 ---
 name: migrate-posts
-description: Bring your open posts up to date after the clins skills change - pull request bodies, GitHub issues and Linear issues written with clins:post. Updates the installed skills, finds your open posts on every GitHub account you are signed in to and in Linear, and shows a dry run of what each one needs. Then applies only the format fixes that check_post.py --fix makes, one post at a time, with a backup, and leaves the content as it is. Remembers the version it last ran for each account, so a second run does nothing. Use after the skills change, or when asked to migrate, refresh, restyle or update open posts, PRs or issues.
+description: Bring your open posts up to date after the clins skills change - pull request bodies, GitHub issues, your comments on open PRs and issues, and Linear issues written with clins:post. Updates the installed skills, finds your open posts on every GitHub account you are signed in to and in Linear, and shows a dry run of what each one needs. Then applies only the format fixes that check_post.py --fix makes, one post at a time, with a backup, and leaves the content as it is. Remembers the version it last ran for each account, so a second run does nothing. Use after the skills change, or when asked to migrate, refresh, restyle or update open posts, PRs or issues.
 user-invocable: true
 argument-hint: "[no dry run] [check again] [github | linear] [account]"
 ---
@@ -64,9 +64,19 @@ gh search issues --author @me --state open --limit 1000 --json url,repository,nu
 
 GitHub search returns at most 1000 results. If a search returns 1000, some posts can be missing: say so in the report, and do not record the account in step 8.
 
+Then the account's comments on PRs and issues that are still open. Search cannot find comments by author, so read them all, every page:
+
+```bash
+gh api graphql --paginate -f query='query($endCursor:String){viewer{issueComments(first:100, after:$endCursor){
+  pageInfo{hasNextPage endCursor} nodes{url databaseId body issue{state} pullRequest{state} repository{nameWithOwner}}}}}' \
+  --jq '.data.viewer.issueComments.nodes[] | select((.pullRequest.state // .issue.state) == "OPEN")'
+```
+
+Replies in review threads are short posts with no block and no footer, so they never need a fix.
+
 For Linear, list all the issues the user created (`creator: "me"`) that are not done or canceled, and read every page. Ask only for the fields you need, since descriptions are long. Do not filter by `updatedAt`: a post that needed no change in the last run was not updated then, but a new fix can apply to it.
 
-Fetch each body (`gh pr view <url> --json body -q .body`, `gh issue view`, or `get_issue`) and keep only the ones with the clins footer.
+Fetch each body (`gh pr view <url> --json body -q .body`, `gh issue view`, or `get_issue`) and keep only the ones with the clins footer. The comment search already has the bodies. The Linear MCP server cannot list a user's comments, so this skill does not cover Linear comments: say so in the report.
 
 ### 5. Plan each post
 
@@ -99,9 +109,9 @@ Show one table for all accounts, then ask once (with the question tool, if the a
 ### 7. Apply, one post at a time
 
 1. Fetch it again. If it differs from the plan, plan it again and, outside "no dry run", ask again.
-2. Save the body you just fetched, the one you will change, to `~/.config/clins/migrate-posts/backups/<date>/<host>-<owner>-<repo>-<number>.md` (`linear-<ID>.md` for Linear).
+2. Save the body you just fetched, the one you will change, to `~/.config/clins/migrate-posts/backups/<date>/<host>-<owner>-<repo>-<number>.md` (`<host>-<owner>-<repo>-comment-<id>.md` for a comment, `linear-<ID>.md` for Linear).
 3. Run `--fix` on it, and check the result. Only the **Left as is** errors may remain, and the diff is the one you planned. Otherwise, do not write the post. Report it.
-4. Write it with the host skill: [`clins:github`](../github/SKILL.md) (`gh pr edit` or `gh issue edit` with `--body-file fixed.md`) or [`clins:linear`](../linear/SKILL.md) (`save_issue` with `patch`, one `replace` per changed line from the diff).
+4. Write it with the host skill: [`clins:github`](../github/SKILL.md) (`gh pr edit` or `gh issue edit` with `--body-file fixed.md`, or `gh api -X PATCH repos/<owner>/<repo>/issues/comments/<id> -F body=@fixed.md` for a comment) or [`clins:linear`](../linear/SKILL.md) (`save_issue` with `patch`, one `replace` per changed line from the diff).
 5. Fetch it once more, and make sure that it matches what you wrote.
 
 ### 8. Record and report
