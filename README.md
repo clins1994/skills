@@ -33,6 +33,7 @@ The plugin names each skill `clins:<skill>`, for example `/clins:post`. The skil
 |-------|--------------|
 | [post](skills/post/SKILL.md) | The writing format: a short lead for people, then the full text in a collapsed "More details" block. Writes in your languages: a lead language and any others under it. Includes a check script. |
 | [create-pr](skills/create-pr/SKILL.md) | Creates or updates a reviewable pull request: exact range, checks, title, before/after images right under the lead, body from `post`. Works with any host. Never merges. |
+| [fork-review](skills/fork-review/SKILL.md) | Opens a PR on your fork first, runs your review steps there (an agent loop such as `/greploop`, a person, or a wait), then opens the same PR upstream and keeps both bodies in sync. Includes an optional Claude Code hook. |
 | [github](skills/github/SKILL.md) | Posts to GitHub with `gh`: PR bodies with images uploaded by `gh --attach` and a render check, PR comments, replies in review threads, and issues. |
 | [linear](skills/linear/SKILL.md) | Posts to Linear through its MCP server: new issues with fields, safe description updates with `patch`, comments and thread replies. |
 
@@ -40,10 +41,24 @@ How they fit together:
 
 ```
 create-pr ──► post (text) ──► github (commands)
+    └──────► fork-review (fork first, then upstream)
 linear ─────► post (text)
 ```
 
-`post` owns the text. `github` and `linear` own the platform: syntax, commands and updates. `create-pr` owns the pull request workflow and works with any host skill, so a `gitlab` skill can sit next to `github` later. A `jira` skill can sit next to `linear` the same way.
+`post` owns the text. `github` and `linear` own the platform: syntax, commands and updates. `create-pr` owns the pull request workflow and works with any host skill, so a `gitlab` skill can sit next to `github` later. A `jira` skill can sit next to `linear` the same way. `fork-review` owns the route when a PR goes to your fork before upstream.
+
+## Fork review
+
+For repos you don't own, `fork-review` can open each PR on your fork first. Whatever review you choose runs there, and only a clean branch goes upstream. Set it with one line in your global instructions file, and add lines for single repos:
+
+```
+clins:fork-review: mode ask; review /greploop
+clins:fork-review <owner>/<repo>: mode fork; review /greploop, then @alice
+```
+
+`mode` is `ask` (ask each time), `fork` (always) or `origin` (never). `review` lists the steps: a command for the agent to run, `@someone` to request a review from, or `wait`.
+
+The Claude Code plugin also ships a hook that asks before, or blocks, a `gh pr create` that skips the fork, depending on `mode`. It does nothing until you add the line. Agents that install with `npx skills` (Codex, Cursor, others) get the skill only, with no hook.
 
 ## Languages
 
