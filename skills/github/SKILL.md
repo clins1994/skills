@@ -34,7 +34,7 @@ This skill uses the `gh` CLI. It does not cover the GitHub MCP server yet ([`CON
 
 ## Pull request body with images
 
-Before `gh pr create` on a repo the user doesn't own, check the [`clins:fork-review`](../fork-review/SKILL.md) setting. It may want the PR on the user's fork first.
+If the [`clins:fork-review`](../fork-review/SKILL.md) skill is installed, check its setting before `gh pr create` on a repo the user doesn't own. It may want the PR on the user's fork first. Without that skill, post as usual.
 
 Run `gh` from the folder that holds the body and the images, so the `./` paths in the body match. That folder is outside the repo, so pass `-R` and `--head`. Push the branch first.
 
