@@ -14,7 +14,7 @@ The changes are code, not instructions: `check_post.py --fix` from [`clins:post`
 ## Rules
 
 - Write only what `--fix` returned. Never rewrite, shorten, translate again or "improve" a post. When the check still reports an error after `--fix`, report it and leave the text as it is.
-- Only posts that the account wrote, and that end with the clins footer: the `🤖 Generated with Claude Code · ... · clins:<skill>` block, or the one-line `🤖 Generated with [Claude Code](...) using [clins:...]` from before 0.9.0.
+- Only posts that the account wrote, and that end with the clins footer: `🪴 Generated with [Claude Code](...) ... using [clins:<skill>](...)`, or the same line with 🤖 from before 0.9.0.
 - Never touch text below the footer, other people's text, titles, labels, state, reviewers or draft state.
 - Fetch each post again right before you write it. If it changed since you planned it, plan it again.
 - Back up each body before you write it.
@@ -101,7 +101,7 @@ Show one table for all accounts, then ask once (with the question tool, if the a
 
 | Account | Post | Changes | Left as is |
 |---|---|---|---|
-| github.com/&lt;login&gt; | [&lt;owner&gt;/&lt;repo&gt;#12](url) "Add retry" | read time (2 blocks), footer block | 1 sentence over 30 words |
+| github.com/&lt;login&gt; | [&lt;owner&gt;/&lt;repo&gt;#12](url) "Add retry" | read time (2 blocks), footer form, divider | 1 sentence over 30 words |
 | linear/&lt;workspace&gt; | [ENG-123](url) "Fix the login redirect" | none, up to date | |
 
 **No dry run:** when the user says so ("no dry run", "just do it"), skip the question and apply every planned change. Every other step still runs: the plan, the backup, the fetch before the write and the check after it. Show the same table at the end, with the result of each post.

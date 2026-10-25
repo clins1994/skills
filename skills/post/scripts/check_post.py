@@ -49,30 +49,22 @@ KNOWN = {
 EN_TITLE = KNOWN["en"][0]
 
 
-CLAUDE_CODE = "[Claude Code](https://claude.com/claude-code)"
-
-
-def skill_link(skill: str) -> str:
-    return f"[clins:{skill}](https://github.com/clins1994/skills/blob/main/skills/{skill}/SKILL.md)"
-
-
-def footer(skill: str = "post", platform: str = "github", model: str | None = None) -> str:
-    """The smallest valid footer block. A real one adds what the agent knows (see SKILL.md)."""
-    title = f"🤖 Generated with Claude Code{f' · {model}' if model else ''} · clins:{skill}"
-    body = f"- Made with {CLAUDE_CODE}\n- Skills: {skill_link(skill)}"
-    if platform == "linear":
-        return f">>> {title}\n\n{body}\n\n>>>"
-    return f"<details><summary>{title}</summary>\n\n{body}\n\n</details>"
+def footer(skill: str = "post", model: str | None = None, effort: str | None = None) -> str:
+    """The footer line. The model and its effort level go in when the agent knows them."""
+    on = f" on {model}{f' ({effort})' if effort else ''}" if model else ""
+    return (f"🪴 Generated with [Claude Code](https://claude.com/claude-code){on} using "
+            f"[clins:{skill}](https://github.com/clins1994/skills/blob/main/skills/{skill}/SKILL.md)")
 
 
 FOOTER = footer()
-# The footer is a collapsed block with this title. Its body holds how the post was made.
-FOOTER_TITLE = re.compile(r"🤖 Generated with Claude Code(?: · (?P<model>[^·]+?))? · clins:(?P<skill>[a-z0-9-]+)")
-SKILL_LINK = re.compile(r"\[clins:([a-z0-9-]+)\]\(https://github\.com/clins1994/skills/blob/main/skills/([a-z0-9-]+)/SKILL\.md\)")
-# The one-line footer from before 0.9.0. Linear saves links as [text](<url>), so a URL can be wrapped.
-OLD_FOOTER = re.compile(r"^🤖 Generated with \[Claude Code\]\((?P<w1><)?https://claude\.com/claude-code(?(w1)>)\) using "
-                        r"\[clins:(?P<a>[a-z0-9-]+)\]\((?P<w2><)?https://github\.com/clins1994/skills/blob/main/skills/"
-                        r"(?P<b>[a-z0-9-]+)/SKILL\.md(?(w2)>)\)$", re.M)
+# The footer line. Linear saves links as [text](<url>), so a URL can be wrapped.
+CC_LINK = r"\[Claude Code\]\((?P<w1><)?https://claude\.com/claude-code(?(w1)>)\)"
+SKILL_LINK = (r"\[clins:(?P<a>[a-z0-9-]+)\]\((?P<w2><)?https://github\.com/clins1994/skills/blob/main/skills/"
+              r"(?P<b>[a-z0-9-]+)/SKILL\.md(?(w2)>)\)")
+FOOTER_LINE = re.compile(rf"^🪴 Generated with {CC_LINK}(?: on (?P<model>[^()\[\n]+?)(?: \((?P<effort>[^()\n]+)\))?)? "
+                         rf"using {SKILL_LINK}$", re.M)
+# The footer from before 0.9.0: the same line with 🤖 and no model.
+OLD_FOOTER = re.compile(rf"^🤖 Generated with {CC_LINK} using {SKILL_LINK}$", re.M)
 CJK = "぀-ヿ㐀-鿿！-｠"
 # Sentence ends: latin punctuation before a space, and full stops that need no space
 # (CJK 。！？ and the devanagari danda । used in hindi).
@@ -93,7 +85,7 @@ CPM = 500
 WIDE = "぀-ヿ㐀-鿿가-힯฀-๿"
 READ_SEP = " · "
 
-# A divider goes directly above the footer block: a --- line with a blank line above and below it.
+# A divider goes directly above the footer: a --- line with a blank line above and below it.
 DIVIDER_ABOVE = re.compile(r"\n[ \t]*\n---[ \t]*\n[ \t]*\n$")
 FENCE = re.compile(r"^[ \t]*```.*?^[ \t]*```[^\n]*$", re.S | re.M)
 GITHUB = re.compile(r"<details[^>]*>\s*<summary>(?P<t>.*?)</summary>\n\n(?P<b>.*?)\n</details>", re.S)
@@ -152,24 +144,19 @@ def matches(rxs, text: str) -> list:
 
 
 def find_footer(text: str):
-    """The footer block and its title match, or (None, None)."""
-    for m in matches((GITHUB, LINEAR), text):
-        f = FOOTER_TITLE.fullmatch(re.sub(r"<[^>]+>", "", m["t"]).strip())
-        if f:
-            return m, f
-    return None, None
+    """The footer line, or None."""
+    return next(iter(matches((FOOTER_LINE,), text)), None)
 
 
 def find_old_footer(text: str):
-    """The one-line footer from before 0.9.0, or None."""
+    """The footer line from before 0.9.0, or None."""
     return next(iter(matches((OLD_FOOTER,), text)), None)
 
 
 def footer_end(text: str) -> int | None:
-    """Where our text ends: after the footer block, or after the old footer line."""
-    m, _ = find_footer(text)
-    old = find_old_footer(text)
-    return m.end() if m else old.end() if old else None
+    """Where our text ends: after the footer line, new or old."""
+    m = find_footer(text) or find_old_footer(text)
+    return m.end() if m else None
 
 
 def summary_lines(text: str, titles: dict[str, str] | None = None, reads: dict[str, str] | None = None):
@@ -182,10 +169,7 @@ def summary_lines(text: str, titles: dict[str, str] | None = None, reads: dict[s
         if title and read:
             phrase[title] = read
     for m in matches((GITHUB, LINEAR), text):
-        full = re.sub(r"<[^>]+>", "", m["t"]).strip()
-        if FOOTER_TITLE.fullmatch(full):
-            continue
-        title = full.partition(READ_SEP)[0]
+        title = re.sub(r"<[^>]+>", "", m["t"]).strip().partition(READ_SEP)[0]
         yield f"{title}{READ_SEP}{phrase.get(title, '{n} min').format(n=read_minutes(m['b']))}"
 
 
@@ -200,7 +184,7 @@ def fix_read_time(top: str, phrases: dict[str, str]) -> str:
         raw = m["t"]
         full = re.sub(r"<[^>]+>", "", raw).strip()
         title, _, read = full.partition(READ_SEP)
-        if FOOTER_TITLE.fullmatch(full) or title not in phrases:
+        if title not in phrases:
             continue
         want = phrases[title].format(n=read_minutes(m["b"]))
         if read.strip() == want:
@@ -223,17 +207,16 @@ def fix_read_time(top: str, phrases: dict[str, str]) -> str:
 
 
 def fix_footer(top: str) -> str:
-    """0.9.0: the one-line footer becomes a footer block. Only the skill is known, so only it is named."""
+    """0.9.0: the footer starts with 🪴. The model of old work is not known, so it stays out."""
     old = find_old_footer(top)
-    if not old or old["a"] != old["b"]:
+    if not old:
         return top
-    platform = "linear" if matches((LINEAR,), top) else "github"
-    return top[: old.start()] + footer(old["a"], platform) + top[old.end():]
+    return top[: old.start()] + "🪴" + old[0][len("🤖"):] + top[old.end():]
 
 
 def fix_divider(top: str) -> str:
-    """0.9.0: a divider goes directly above the footer block."""
-    m, _ = find_footer(top)
+    """0.9.0: a divider goes directly above the footer."""
+    m = find_footer(top) or find_old_footer(top)
     if not m or DIVIDER_ABOVE.search(top[: m.start()]):
         return top
     lines = top[: m.start()].split("\n")
@@ -303,10 +286,8 @@ def parse(text: str, template: bool = False):
     so both read the same leads.
 
     blocks: (position, title, read time, body). The summary line is "<title> · <read time>"."""
-    blocks = [(m.start(), *t.partition(READ_SEP)[::2], m["b"])
-              for m in matches((GITHUB, LINEAR), text)
-              for t in [re.sub(r"<[^>]+>", "", m["t"]).strip()]
-              if not FOOTER_TITLE.fullmatch(t)]  # The footer is not a details block.
+    blocks = [(m.start(), *re.sub(r"<[^>]+>", "", m["t"]).strip().partition(READ_SEP)[::2], m["b"])
+              for m in matches((GITHUB, LINEAR), text)]
     head = text[: blocks[0][0]] if blocks else text
     lines = head.strip().split("\n")
     lines = lines[1:] if lines and lines[0].startswith("@") else lines
@@ -364,15 +345,15 @@ def check(text: str, platform: str | None, langs: list[str] | None = None, sourc
         label = labels.get(langs[0]) or KNOWN.get(langs[0], (None,) * 3)[1]
         if not label:
             return [f"No built-in 'original' label for {langs[0]}. Pass --label {langs[0]}=..."]
-    foot, _ = find_footer(text)
+    foot = find_footer(text) or find_old_footer(text)
     # A block that belongs above the footer sits below it. A bot section below the footer can reuse a title.
     above = {b[1] for b in parse(text)[0] if foot and b[0] < foot.start()}
     misplaced = foot and any(b[0] > foot.start() and b[1] in want_titles and b[1] not in above for b in parse(text)[0])
     end = footer_end(text)
     text = text if end is None else text[:end] + "\n"  # Bot sections below the footer are not ours.
-    foot, ftitle = find_footer(text)
+    foot = find_footer(text)
     if misplaced:
-        return ["The footer block must come after the details blocks."]
+        return ["The footer must come after the details blocks."]
     old = find_old_footer(text)
 
     if "@greptileai" in text:
@@ -428,20 +409,16 @@ def check(text: str, platform: str | None, langs: list[str] | None = None, sourc
                     err.append(f"Put the read time after the title: '{t}{READ_SEP}{want}'"
                                f"{f', not {read!r}' if read else ''}.")
         if old and not foot:
-            err.append("The footer is the old one-line footer. Replace it with the footer block from SKILL.md.")
+            err.append("The footer is the old one (🤖). Run --fix, or copy it from SKILL.md.")
         elif not foot:
-            err.append("The footer block is missing or its title changed. Copy it from SKILL.md.")
+            err.append("The footer is missing or changed. Copy it from SKILL.md.")
         else:
             if not DIVIDER_ABOVE.search(text[: foot.start()]):
-                err.append("Put a divider (---) above the footer block, with a blank line above and below it.")
-            links = SKILL_LINK.findall(foot["b"])
-            if CLAUDE_CODE not in foot["b"]:
-                err.append(f"The footer block must link Claude Code: {CLAUDE_CODE}.")
-            if not any(a == b == ftitle["skill"] for a, b in links):
-                bad = next((f"clins:{a} links to skills/{b}" for a, b in links if a != b), None)
-                err.append(f"The footer names clins:{ftitle['skill']} but {bad or 'does not link to its SKILL.md'}.")
-            elif skill and ftitle["skill"] != skill:
-                err.append(f"The footer names clins:{ftitle['skill']}. This post comes from clins:{skill}.")
+                err.append("Put a divider (---) above the footer, with a blank line above and below it.")
+            if foot["a"] != foot["b"]:
+                err.append(f"The footer names clins:{foot['a']} but links to skills/{foot['b']}.")
+            elif skill and foot["a"] != skill:
+                err.append(f"The footer names clins:{foot['a']}. This post comes from clins:{skill}.")
     elif "---" in (l.strip() for l in lines) or foot or old:
         err.append("A short post (no block) has no divider and no footer.")
 
@@ -484,7 +461,7 @@ def main() -> int:
     ap.add_argument("--read-time", action="store_true",
                     help="print each block's title with its read time, for the summary line, and stop")
     ap.add_argument("--fix", action="store_true",
-                    help="print the post with its format brought up to date (read times, footer block, its divider), and stop")
+                    help="print the post with its format brought up to date (read times, the footer's form and its divider), and stop")
     ap.add_argument("--template", action="store_true",
                     help="the post follows a repo template whose heading comes before the lead")
     a = ap.parse_args()

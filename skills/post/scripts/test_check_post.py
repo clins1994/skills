@@ -114,7 +114,7 @@ Adds retry to the upload step. Please review the backoff values.
 {FOOTER}
 """
 
-# The one-line footer from before 0.9.0.
+# The footer from before 0.9.0.
 OLD = ("🤖 Generated with [Claude Code](https://claude.com/claude-code) using "
        "[clins:post](https://github.com/clins1994/skills/blob/main/skills/post/SKILL.md)")
 
@@ -132,7 +132,7 @@ The redirect drops the query string.
 
 ---
 
-{footer("post", "linear")}
+{FOOTER}
 """
 
 CASES = [
@@ -185,9 +185,10 @@ CASES = [
     ("read time grows with the text", GH_EN.replace("- Retry three times.", "Retry often. " * 120),
      {}, ["'🇬🇧 More details · 2 min read'"]),
     ("linear read time is checked", LINEAR_EN.replace(" · 1 min read", ""), dict(platform="linear"), ["1 min read"]),
-    ("footer with a model and more lines passes", GH_EN.replace(FOOTER, footer("post", model="Opus 5.5").replace(
-        "- Skills:", "- Models: Opus 5.5 (`claude-opus-5-5`) wrote it.\n- Skills:")), {}, []),
-    ("old one-line footer fails", GH_EN.replace(FOOTER, OLD), {}, ["old one-line footer"]),
+    ("footer with a model passes", GH_EN.replace(FOOTER, footer("post", "Opus 5.5")), {}, []),
+    ("footer with a model and an effort passes", GH_EN.replace(FOOTER, footer("post", "Opus 5.5", "Medium")), {}, []),
+    ("old footer fails", GH_EN.replace(FOOTER, OLD), {}, ["old one (🤖)"]),
+    ("short post with the old footer fails", "Fixed.\n\n" + OLD, {}, ["short post"]),
     ("footer before the blocks fails", GH_EN.replace("---\n\n" + FOOTER, "").replace("---\n", "---\n\n" + FOOTER + "\n"),
      {}, ["after the details blocks"]),
     ("footer without a divider above it fails", GH_EN.replace("---\n\n" + FOOTER, FOOTER), {}, ["divider (---) above the footer"]),
@@ -195,17 +196,14 @@ CASES = [
      ["divider (---) above the footer"]),
     ("template footer without a divider fails", GH_TEMPLATE.replace("---\n\n" + FOOTER, FOOTER),
      dict(template=True), ["divider (---) above the footer"]),
-    ("linear footer without a divider fails", LINEAR_EN.replace("---\n\n>>> 🤖", ">>> 🤖"), dict(platform="linear"),
+    ("linear footer without a divider fails", LINEAR_EN.replace("---\n\n" + FOOTER, FOOTER), dict(platform="linear"),
      ["divider (---) above the footer"]),
     ("footer must link Claude Code", GH_EN.replace("[Claude Code](https://claude.com/claude-code)", "Claude Code"),
-     {}, ["must link Claude Code"]),
-    ("footer block is not a details block", GH_EN, dict(langs=["en"]), []),
-    ("text below the footer block is not checked", GH_EN + "\n<details><summary>Greptile Summary</summary>\n\nbot—text\n</details>\n",
+     {}, ["footer is missing or changed"]),
+    ("text below the footer is not checked", GH_EN + "\n<details><summary>Greptile Summary</summary>\n\nbot—text\n</details>\n",
      {}, []),
-    ("short post with the old footer fails", "Fixed.\n\n" + OLD, {}, ["short post"]),
     ("create-pr footer passes", GH_EN.replace(FOOTER, footer("create-pr")), dict(skill="create-pr"), []),
     ("footer name must match its link", GH_EN.replace("[clins:post]", "[clins:linear]"), {}, ["links to"]),
-    ("footer title must match its link", GH_EN.replace("· clins:post", "· clins:linear"), {}, ["names clins:linear"]),
     ("footer must name the running skill", GH_EN, dict(skill="linear"), ["comes from clins:linear"]),
     ("template heading above the lead passes", GH_TEMPLATE, dict(platform="github", template=True), []),
     ("template heading needs --template", GH_TEMPLATE, dict(platform="github"), ["not a heading"]),
@@ -253,11 +251,10 @@ DETECTS = [
     ("unknown title with --title", GH_EN.replace(EN_TITLE, NL), {"titles": {"nl": NL}}, (["nl"], "nl", [])),
 ]
 
-# fix: an old post (no read times, one-line footer) catches up, and only its format changes.
+# fix: an old post (no read times, no divider above the footer) catches up, and only its format changes.
 def old(post: str, platform: str = "github") -> str:
     post = re.sub(r" · (?:\d+ min read|読了目安\d+分|\d+ min de leitura)", "", post)
-    new = "---\n\n" + footer("post", platform)
-    return post.replace(new, OLD) if new in post else post
+    return post.replace("---\n\n" + FOOTER, OLD)
 
 
 BOT = "\n<details><summary>🇬🇧 More details · 9 min read</summary>\n\nbot text\n</details>\n"
@@ -271,7 +268,7 @@ def saved_on_linear(post: str) -> str:
 
 # Fenced examples of a block, a Linear block and the old footer, inside a details block.
 FENCED = ("- Retry three times.\n\n```\n<details><summary>🇬🇧 More details · 4 min read</summary>\n```\n\n"
-          f"```\n>>> {EN_TITLE} · 4 min read\n\nx\n\n>>>\n```\n\n```\n{OLD}\n```")
+          f"```\n>>> {EN_TITLE} · 4 min read\n\nx\n\n>>>\n```\n\n```\n{FOOTER}\n```")
 GH_FENCED = GH_EN.replace("- Retry three times.", FENCED)
 BOLD = GH_EN.replace(f"<b>{EN_TITLE}</b> · 1 min read", f"<b>{EN_TITLE} · 1 min read</b>")
 
@@ -307,34 +304,40 @@ for name, ok in [
     ("a CRLF post whose bot section uses LF is fixed", fix(old(GH_EN).replace("\n", "\r\n") + "\nbot\n")
      == GH_EN.replace("\n", "\r\n") + "\nbot\n"),
     ("mixed line endings are left alone", fix(old(GH_EN).replace("\n", "\r\n", 3)) == old(GH_EN).replace("\n", "\r\n", 3)),
-    ("an old footer whose link does not match is left alone",
-     OLD.replace("[clins:post]", "[clins:linear]") in fix(old(GH_EN).replace("[clins:post]", "[clins:linear]"))),
-    ("a saved Linear post gets the footer block, and its bot section stays",
-     fix(saved_on_linear(old(LINEAR_EN, "linear")) + LINEAR_BOT) == LINEAR_EN + LINEAR_BOT),
+    ("a saved Linear post gets its divider, and its bot section stays",
+     fix(saved_on_linear(old(LINEAR_EN)) + LINEAR_BOT) == saved_on_linear(LINEAR_EN) + LINEAR_BOT),
     ("other saved Linear links keep their form", "[doc](<https://example.com>)" in fix(saved_on_linear(
-        old(LINEAR_EN, "linear").replace("query string.", "query string. See [doc](https://example.com)."))
+        old(LINEAR_EN).replace("query string.", "query string. See [doc](https://example.com)."))
         + LINEAR_BOT)),
-    ("a saved Linear footer block keeps the text below it", fix(saved_on_linear(LINEAR_EN) + LINEAR_BOT.replace(
+    ("a saved Linear footer keeps the text below it", fix(saved_on_linear(LINEAR_EN) + LINEAR_BOT.replace(
         "9 min", "7 min")) == saved_on_linear(LINEAR_EN) + LINEAR_BOT.replace("9 min", "7 min")),
     ("a read time inside bold keeps the closing tag", fix(BOLD.replace("1 min read", "7 min read")) == BOLD),
     ("a missing read time inside bold goes after the tag", fix(BOLD.replace(" · 1 min read", "")) == GH_EN),
     ("a title with markup the fix does not know stays",
      fix(BOLD.replace("1 min read", "<i>7</i> min read")) == BOLD.replace("1 min read", "<i>7</i> min read")),
-    ("fenced examples do not change, and the footer stays GitHub", fix(old(GH_EN).replace("- Retry three times.", FENCED)) == GH_FENCED),
+    ("fenced examples do not change", fix(old(GH_EN).replace("- Retry three times.", FENCED)) == GH_FENCED),
     ("a fenced example is not a block or a footer", check(GH_FENCED, "github") == []),
     ("the CLI reports a footer above the blocks",
      "after the details blocks" in cli(GH_EN.replace("---\n\n" + FOOTER, "").replace("---\n", "---\n\n" + FOOTER + "\n"))),
     ("the CLI does not check a bot block below the footer", "0 error(s)" in cli(GH_EN + BOT, "--platform", "github")),
     ("the CLI reads saved Linear links", "0 error(s)" in cli(saved_on_linear(LINEAR_EN) + LINEAR_BOT, "--platform", "linear")),
-    ("a footer block gets its divider", fix(GH_EN.replace("---\n\n" + FOOTER, FOOTER)) == GH_EN),
+    ("a footer gets its divider", fix(GH_EN.replace("---\n\n" + FOOTER, FOOTER)) == GH_EN),
     ("a template footer gets its divider right above it",
      fix(GH_TEMPLATE.replace("---\n\n" + FOOTER, FOOTER)) == GH_TEMPLATE),
-    ("a linear footer gets its divider", fix(LINEAR_EN.replace("---\n\n>>> 🤖", ">>> 🤖") + LINEAR_BOT)
+    ("a linear footer gets its divider", fix(LINEAR_EN.replace("---\n\n" + FOOTER, FOOTER) + LINEAR_BOT)
      == LINEAR_EN + LINEAR_BOT),
     ("a CRLF footer gets its divider", fix(GH_EN.replace("---\n\n" + FOOTER, FOOTER).replace("\n", "\r\n"))
      == GH_EN.replace("\n", "\r\n")),
     ("a divider without its blank lines gets them", fix(GH_EN.replace("\n\n---\n\n" + FOOTER, "\n---\n" + FOOTER)) == GH_EN),
     ("a footer with its divider does not change, twice", fix(fix(GH_TEMPLATE)) == GH_TEMPLATE),
+    ("an old footer keeps its links and skill", fix(GH_EN.replace(FOOTER, OLD.replace("clins:post", "clins:create-pr")
+        .replace("skills/post/", "skills/create-pr/"))) == GH_EN.replace(FOOTER, footer("create-pr"))),
+    ("an old footer whose link does not match keeps it", "[clins:linear](https://github.com/clins1994/skills/blob/main/skills/post/"
+     in fix(old(GH_EN).replace("[clins:post]", "[clins:linear]"))),
+    ("the footer line reads as a sentence", footer("create-pr", "Opus 5.5", "Medium").startswith(
+        "🪴 Generated with [Claude Code](https://claude.com/claude-code) on Opus 5.5 (Medium) using [clins:create-pr]")),
+    ("a footer with a model and an effort passes the check",
+     check(GH_EN.replace(FOOTER, footer("post", "Opus 5.5", "Medium")), "github") == []),
     ("a footer with no text above it is left alone", fix(FOOTER + "\n") == FOOTER + "\n"),
     ("a custom title gets its read time", fix(GH_EN.replace(EN_TITLE, "🇽🇽 Custom").replace(" · 1 min read", ""),
                                              {"xx": "🇽🇽 Custom"}, {"xx": "{n} xx"}).count("🇽🇽 Custom</b> · 1 xx") == 1),
