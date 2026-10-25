@@ -1,6 +1,6 @@
 ---
 name: post
-description: The writing format for engineering posts - a short lead for humans, then the full text in a collapsed "More details" block, then a footer. Writes in the user's own languages - a lead language and any other languages under it, saved once as a default and changed per post in plain words ("japanese as well", "only the lead", "swap them"). Asks for the default the first time. Runs a style pass per language, writes the lead last, and checks the result with a bundled script. clins:create-pr, clins:github and clins:linear use it for the text. Use it directly for any other post, or when asked to "write this up", "draft a post", or "translate the post".
+description: The writing format for engineering posts - a short lead for humans, then the full text in a collapsed "More details" block that says how many minutes it takes to read, then a footer. Writes in the user's own languages - a lead language and any other languages under it, saved once as a default and changed per post in plain words ("japanese as well", "only the lead", "swap them"). Asks for the default the first time. Runs a style pass per language, writes the lead last, and checks the result with a bundled script. clins:create-pr, clins:github and clins:linear use it for the text. Use it directly for any other post, or when asked to "write this up", "draft a post", or "translate the post".
 user-invocable: true
 argument-hint: "[what to write, and any language changes]"
 ---
@@ -79,7 +79,7 @@ One language:
 
 ---
 
-▸ 🇬🇧 More details   (collapsed: the full text)
+▸ 🇬🇧 More details · 3 min read   (collapsed: the full text)
 
 🤖 footer
 ```
@@ -93,8 +93,8 @@ Lead english, also japanese:
 
 ---
 
-▸ 🇬🇧 More details   (collapsed: the full english)
-▸ 🇯🇵 詳細           (collapsed: the full japanese)
+▸ 🇬🇧 More details · 3 min read   (collapsed: the full english)
+▸ 🇯🇵 詳細 · 3分で読めます        (collapsed: the full japanese)
 
 🤖 footer
 ```
@@ -108,8 +108,8 @@ Lead japanese, also english, when english is the source:
 
 ---
 
-▸ 🇯🇵 詳細           (collapsed: the full japanese)
-▸ 🇬🇧 More details   (collapsed: the full english)
+▸ 🇯🇵 詳細 · 3分で読めます        (collapsed: the full japanese)
+▸ 🇬🇧 More details · 3 min read   (collapsed: the full english)
 
 🤖 footer
 ```
@@ -121,6 +121,7 @@ Block titles: 🇬🇧 More details, 🇯🇵 詳細, 🇨🇳 详细信息, �
 - One lead per language, each its own paragraph, in the post's language order. Then one block per language, in the same order.
 - A blank line goes above `---`. Without it, Markdown can turn the lead into a heading.
 - Every block is collapsed.
+- Each block title ends with its read time, after ` · `, so a reader knows the cost before they open it. The script counts it from that block's own text: 200 words a minute, or 500 characters a minute for text written without spaces (japanese, chinese, korean), rounded up, at least 1 minute. Run `check_post.py --read-time post.md` to print every title with its time, and copy those titles. Read times: `{n} min read`, `{n}分で読めます`, `阅读约{n}分钟`, `閱讀約{n}分鐘`, `{n}분 분량`, `{n} min de leitura`, `{n} min de lectura`, `{n} min de lecture`, `{n} Min. Lesezeit`, `{n} min di lettura`, `{n} मिनट में पढ़ें`, `{n} min. læsning`, `{n} dəq oxuma`. For another language, translate `{n} min read` in the same short way.
 - With more than one language, all blocks say the same thing, with the same headings, lists and code. Edit them together.
 - Footer, last. It names the skill the user ran, so a reader knows what to run to get the same result:
 
@@ -139,7 +140,7 @@ Block titles: 🇬🇧 More details, 🇯🇵 詳細, 🇨🇳 详细信息, �
 3. **Style pass in the source language.** For english, follow [`references/english-pass.md`](references/english-pass.md), and use the `simple-english` skill in Plain mode for part 1 if it is installed. For any language, if a plain-writing skill for it is installed, use it. Otherwise apply the same ideas: short sentences, concrete words, no filler.
 4. **Translate** into each other language, from the finished source text. Never from a draft, and never from another translation. Short sentences, no translated tone, and the same headings, lists and code as the source. One translation per term. Follow each language's own conventions: its punctuation, how it mixes in latin text, and its usual style guide (for japanese, the JTF style guide: `、` and `。`, half-width letters and digits, no space between full-width and half-width text). If english is a translation, run the english pass on it too.
 5. **Write the leads last.** One or two sentences in the source language: what this is, and what the reader must do. If there is nothing to do, say what changed. No preamble ("This PR...", "I wanted to..."). Then translate the lead.
-6. **Assemble** in the format above, with the platform's block syntax.
+6. **Assemble** in the format above, with the platform's block syntax. Get each block's read time from `check_post.py --read-time`.
 7. **Check** (below).
 
 Never change code, identifiers, commands, file paths, quoted errors, product names, numbers, or text quoted from another person. Copy quotes, logs and bot output unchanged.
@@ -148,8 +149,9 @@ Never change code, identifiers, commands, file paths, quoted errors, product nam
 
 1. Change the source language first, then the same paragraphs in every other language. Never edit only one language.
 2. Reread the leads. Rewrite them if a fact or the action changed.
-3. Leave other people's text, and everything below the footer, as it is.
-4. Check again. The platform skill says how to fetch and save the text.
+3. Update the read time in each block title (`check_post.py --read-time`).
+4. Leave other people's text, and everything below the footer, as it is.
+5. Check again. The platform skill says how to fetch and save the text.
 
 ## Check before you post
 
@@ -160,12 +162,14 @@ python3 <skill-dir>/scripts/check_post.py --platform github post.md             
 python3 <skill-dir>/scripts/check_post.py --platform github --langs en,ja post.md            # lead english, also japanese
 python3 <skill-dir>/scripts/check_post.py --platform linear --langs ja,en --source en post.md # lead japanese, english is the original
 python3 <skill-dir>/scripts/check_post.py --langs pt --title "pt=🇧🇷 Mais detalhes" post.md     # set a title the script does not know
+python3 <skill-dir>/scripts/check_post.py --read-time post.md                                # print each block title with its read time
 ```
 
 Add `--skill <name>` to require that skill in the footer. Add `--template` when the post follows a repo template whose heading comes before the lead. It checks:
 
 - one lead per language, the "original" label when the source is not the lead, and a lead of at most two sentences
 - the divider, the block titles and their order, that blocks are collapsed and closed, and that no `<summary>` holds a heading
+- the read time after each block title, counted from that block's text
 - the footer: a `clins:<skill>` name that matches its link
 - english style on english text: em-dash, semicolon, curly quote, contraction, weak modal
 - sentence length in every language: 30 words, or 80 characters for languages written without spaces (japanese, chinese, thai). A link counts its text, not its URL.
@@ -173,7 +177,7 @@ Add `--skill <name>` to require that skill in the footer. Add `--template` when 
 - that every other block has the same headings, list items and code as the source block
 - `@greptileai`, and the other platform's block syntax
 
-It ignores everything below the footer. Fix every error and run it again. For a language without a built-in title or label, pass `--title code=...` and `--label code=...`.
+It ignores everything below the footer. Fix every error and run it again. For a language without a built-in title or label, pass `--title code=...`, `--label code=...` and `--read code=...` (with `{n}` for the minutes, for example `--read "xx={n} min"`).
 
 The script cannot check meaning. Also make sure that a reader of the lead alone knows what to do, and that the post does not end with "Let me know" or a recap.
 

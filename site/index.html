@@ -308,7 +308,7 @@ footer a:hover { border-color: #4b5563; }
           <p class="lead">Fixed the retry bug in <code>a3f91c2</code>. Uploads now stop after 3 tries instead of looping. Please review the backoff values.</p>
           <hr>
           <details class="blk">
-            <summary>🇬🇧 More details<span class="hint">collapsed</span></summary>
+            <summary>🇬🇧 More details · 1 min read<span class="hint">collapsed</span></summary>
             <div class="inner">
               <h4>What changed</h4>
               <ul>
@@ -337,7 +337,7 @@ footer a:hover { border-color: #4b5563; }
           <p class="lead">原文: Fixed the retry bug in <code>a3f91c2</code>. Uploads now stop after 3 tries. Please review the backoff values.</p>
           <hr>
           <details class="blk">
-            <summary>🇯🇵 詳細<span class="hint">collapsed</span></summary>
+            <summary>🇯🇵 詳細 · 1分で読めます<span class="hint">collapsed</span></summary>
             <div class="inner">
               <h4>変更点</h4>
               <ul>
@@ -347,7 +347,7 @@ footer a:hover { border-color: #4b5563; }
             </div>
           </details>
           <details class="blk">
-            <summary>🇬🇧 More details<span class="hint">collapsed</span></summary>
+            <summary>🇬🇧 More details · 1 min read<span class="hint">collapsed</span></summary>
             <div class="inner">
               <h4>Changes</h4>
               <ul>
@@ -424,7 +424,7 @@ footer a:hover { border-color: #4b5563; }
           </div>
           <hr>
           <details class="blk">
-            <summary>🇬🇧 More details<span class="hint">collapsed</span></summary>
+            <summary>🇬🇧 More details · 1 min read<span class="hint">collapsed</span></summary>
             <div class="inner">
               <h4>Summary</h4>
               <p>The sign-in form shows the API's <code>401</code> as an inline error under the password field.</p>
@@ -537,7 +537,7 @@ footer a:hover { border-color: #4b5563; }
           <p class="lead">Large uploads retry forever when the network drops. Cap the retries at 3. This is done when the job reports <code>UPLOAD_GAVE_UP</code>.</p>
           <hr>
           <details class="blk">
-            <summary>🇬🇧 More details<span class="hint">collapsed</span></summary>
+            <summary>🇬🇧 More details · 1 min read<span class="hint">collapsed</span></summary>
             <div class="inner">
               <h4>Context</h4>
               <p><code>upload/retry.ts</code> counts attempts per batch, so one bad file resets the counter.</p>
@@ -566,7 +566,7 @@ footer a:hover { border-color: #4b5563; }
           <p class="lead">The sign-in form shows nothing when the password is wrong. Add an inline error. This is done when the e2e test for a wrong password passes.</p>
           <hr>
           <details class="lnblk">
-            <summary>🇬🇧 More details</summary>
+            <summary>🇬🇧 More details · 1 min read</summary>
             <div class="inner">
               <h4>Context</h4>
               <p>The API returns <code>401</code> with <code>code: "wrong_credentials"</code>. The form ignores it.</p>
@@ -592,7 +592,7 @@ footer a:hover { border-color: #4b5563; }
           <p class="lead">パスワードが違うと、サインインフォームに何も表示されません。エラーをフォーム内に表示してください。間違ったパスワードのe2eテストが通れば完了です。</p>
           <hr>
           <details class="lnblk">
-            <summary>🇬🇧 More details</summary>
+            <summary>🇬🇧 More details · 1 min read</summary>
             <div class="inner">
               <h4>Context</h4>
               <p>The API returns <code>401</code> with <code>code: "wrong_credentials"</code>. The form ignores it.</p>
@@ -603,7 +603,7 @@ footer a:hover { border-color: #4b5563; }
             </div>
           </details>
           <details class="lnblk">
-            <summary>🇯🇵 詳細</summary>
+            <summary>🇯🇵 詳細 · 1分で読めます</summary>
             <div class="inner">
               <h4>背景</h4>
               <p>APIは<code>401</code>と<code>code: "wrong_credentials"</code>を返す。フォームはこれを無視している。</p>
@@ -653,7 +653,7 @@ footer a:hover { border-color: #4b5563; }
     // One pull request, written in english (the user's default), shown in four language pairs.
     var L = {
       en: {
-        title: '🇬🇧 More details', original: 'Original', before: 'Before', after: 'After',
+        title: '🇬🇧 More details · 1 min read', original: 'Original', before: 'Before', after: 'After',
         lead: 'A wrong password now shows "Wrong email or password" under the form. Please check the copy and the error color in dark mode.',
         capBefore: 'A wrong password shows nothing.', capAfter: 'A wrong password shows an error.',
         body: [['Summary', '<p>The sign-in form shows the API\'s <code>401</code> as an inline error under the password field.</p>'],
@@ -664,7 +664,7 @@ footer a:hover { border-color: #4b5563; }
                ['Screenshots', '<p>At the top. Chrome, 1280×800, base <code>9c1e0d4</code>, head <code>a3f91c2</code>.</p>']]
       },
       ja: {
-        title: '🇯🇵 詳細', original: '原文', before: '変更前', after: '変更後',
+        title: '🇯🇵 詳細 · 1分で読めます', original: '原文', before: '変更前', after: '変更後',
         lead: 'パスワードが違うとき、フォームの下に「Wrong email or password」と表示します。文言と、ダークモードでのエラーの色を確認してください。',
         capBefore: 'パスワードが違っても何も表示されない。', capAfter: 'パスワードが違うとエラーが表示される。',
         body: [['概要', '<p>サインインフォームで、APIの<code>401</code>をパスワード欄の下にエラーとして表示する。</p>'],
@@ -675,7 +675,7 @@ footer a:hover { border-color: #4b5563; }
                ['スクショ', '<p>上にあります。Chrome、1280×800、base <code>9c1e0d4</code>、head <code>a3f91c2</code>。</p>']]
       },
       zh: {
-        title: '🇨🇳 详细信息', original: '原文', before: '之前', after: '之后',
+        title: '🇨🇳 详细信息 · 阅读约1分钟', original: '原文', before: '之前', after: '之后',
         lead: '密码错误时，表单下方现在会显示“邮箱或密码错误”。请检查文案和深色模式下的错误颜色。',
         capBefore: '密码错误时没有任何提示。', capAfter: '密码错误时会显示错误。',
         body: [['摘要', '<p>登录表单把API返回的<code>401</code>显示为密码框下方的错误。</p>'],
@@ -686,7 +686,7 @@ footer a:hover { border-color: #4b5563; }
                ['截图', '<p>见顶部。Chrome，1280×800，base <code>9c1e0d4</code>，head <code>a3f91c2</code>。</p>']]
       },
       pt: {
-        title: '🇧🇷 Mais detalhes', original: 'Original', before: 'Antes', after: 'Depois',
+        title: '🇧🇷 Mais detalhes · 1 min de leitura', original: 'Original', before: 'Antes', after: 'Depois',
         lead: 'Uma senha errada agora mostra "Wrong email or password" abaixo do formulário. Confira o texto e a cor do erro no modo escuro.',
         capBefore: 'Uma senha errada não mostra nada.', capAfter: 'Uma senha errada mostra um erro.',
         body: [['Resumo', '<p>O formulário de login mostra o <code>401</code> da API como um erro abaixo do campo de senha.</p>'],

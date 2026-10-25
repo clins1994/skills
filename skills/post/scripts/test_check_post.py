@@ -4,13 +4,13 @@ import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from check_post import EN_TITLE, FOOTER, check, footer  # noqa: E402
+from check_post import EN_TITLE, FOOTER, check, footer, read_minutes  # noqa: E402
 
 GH_EN = f"""Adds retry to the upload step. Please review the backoff values.
 
 ---
 
-<details><summary><b>{EN_TITLE}</b></summary>
+<details><summary><b>{EN_TITLE}</b> · 1 min read</summary>
 
 ## Summary
 
@@ -21,7 +21,7 @@ GH_EN = f"""Adds retry to the upload step. Please review the backoff values.
 {FOOTER}
 """
 
-JA_BLOCK = """<details><summary><b>🇯🇵 詳細</b></summary>
+JA_BLOCK = """<details><summary><b>🇯🇵 詳細</b> · 1分で読めます</summary>
 
 ## 概要
 
@@ -29,7 +29,7 @@ JA_BLOCK = """<details><summary><b>🇯🇵 詳細</b></summary>
 
 </details>"""
 
-EN_BLOCK = f"""<details><summary><b>{EN_TITLE}</b></summary>
+EN_BLOCK = f"""<details><summary><b>{EN_TITLE}</b> · 1 min read</summary>
 
 ## Summary
 
@@ -72,7 +72,7 @@ GH_PT_JA = f"""Adiciona novas tentativas ao upload. Confira os tempos de espera.
 
 ---
 
-<details><summary><b>🇧🇷 Mais detalhes</b></summary>
+<details><summary><b>🇧🇷 Mais detalhes</b> · 1 min de leitura</summary>
 
 ## Resumo
 
@@ -105,7 +105,7 @@ LINEAR_EN = f"""Fix the login redirect. Done when the e2e test passes.
 
 ---
 
->>> {EN_TITLE}
+>>> {EN_TITLE} · 1 min read
 
 ## Context
 
@@ -146,19 +146,26 @@ CASES = [
      {}, ["over 30 words (en)"]),
     ("long portuguese sentence fails", GH_PT_JA.replace("- Tenta três vezes.", "- Tenta " + "muitas " * 30 + "vezes."),
      dict(langs=["pt", "ja"]), ["over 30 words (pt)"]),
-    ("long chinese sentence fails", GH_EN_JA.replace("🇯🇵 詳細", "🇨🇳 详细信息").replace("3回まで再試行する。", "重试" * 45 + "。"),
+    ("long chinese sentence fails", GH_EN_JA.replace("🇯🇵 詳細</b> · 1分で読めます", "🇨🇳 详细信息</b> · 阅读约1分钟").replace("3回まで再試行する。", "重试" * 45 + "。"),
      dict(langs=["en", "zh"]), ["over 80 characters (zh)"]),
-    ("chinese may space latin text", GH_EN_JA.replace("🇯🇵 詳細", "🇨🇳 详细信息").replace("3回まで再試行する。", "最多重试 3 次。"),
+    ("chinese may space latin text", GH_EN_JA.replace("🇯🇵 詳細</b> · 1分で読めます", "🇨🇳 详细信息</b> · 阅读约1分钟").replace("3回まで再試行する。", "最多重试 3 次。"),
      dict(langs=["en", "zh"]), []),
-    ("hindi sentences end at the danda", GH_EN_JA.replace("🇯🇵 詳細", "🇮🇳 अधिक विवरण").replace(
+    ("hindi sentences end at the danda", GH_EN_JA.replace("🇯🇵 詳細</b> · 1分で読めます", "🇮🇳 अधिक विवरण</b> · 1 मिनट में पढ़ें").replace(
         "3回まで再試行する。", " ".join(["यह छोटा वाक्य है।"] * 12)),
      dict(langs=["en", "hi"]), []),
-    ("long hindi sentence fails", GH_EN_JA.replace("🇯🇵 詳細", "🇮🇳 अधिक विवरण").replace(
+    ("long hindi sentence fails", GH_EN_JA.replace("🇯🇵 詳細</b> · 1分で読めます", "🇮🇳 अधिक विवरण</b> · 1 मिनट में पढ़ें").replace(
         "3回まで再試行する。", "यह " * 32 + "वाक्य है।"),
      dict(langs=["en", "hi"]), ["over 30 words (hi)"]),
     ("short post with footer fails", "Fixed.\n\n" + FOOTER, {}, ["short post"]),
     ("unknown language needs a title", GH_EN, dict(langs=["xx"]), ["--title xx="]),
-    ("title override passes", GH_EN.replace(EN_TITLE, "🇽🇽 Custom"), dict(langs=["xx"], titles={"xx": "🇽🇽 Custom"}), []),
+    ("unknown language needs a read time", GH_EN, dict(langs=["xx"], titles={"xx": "🇽🇽 Custom"}), ["--read xx="]),
+    ("title override passes", GH_EN.replace(EN_TITLE, "🇽🇽 Custom").replace("1 min read", "1 xx"),
+     dict(langs=["xx"], titles={"xx": "🇽🇽 Custom"}, reads={"xx": "{n} xx"}), []),
+    ("missing read time fails", GH_EN.replace(" · 1 min read", ""), {}, ["'🇬🇧 More details · 1 min read'"]),
+    ("wrong read time fails", GH_EN.replace("1 min read", "5 min read"), {}, ["not '5 min read'"]),
+    ("read time grows with the text", GH_EN.replace("- Retry three times.", "Retry often. " * 120),
+     {}, ["'🇬🇧 More details · 2 min read'"]),
+    ("linear read time is checked", LINEAR_EN.replace(" · 1 min read", ""), dict(platform="linear"), ["1 min read"]),
     ("create-pr footer passes", GH_EN.replace(FOOTER, footer("create-pr")), dict(skill="create-pr"), []),
     ("footer name must match its link", GH_EN.replace("[clins:post]", "[clins:linear]"), {}, ["links to"]),
     ("footer must name the running skill", GH_EN, dict(skill="linear"), ["comes from clins:linear"]),
@@ -169,10 +176,25 @@ CASES = [
      dict(template=True), ["lead sentence"]),
 ]
 
+# read_minutes: 200 words or 500 wide characters a minute, rounded up, URLs and markup not counted.
+READS = [
+    ("empty block is 1 minute", "", 1),
+    ("200 words is 1 minute", "word " * 200, 1),
+    ("201 words is 2 minutes", "word " * 201, 2),
+    ("500 japanese characters is 1 minute", "あ" * 500, 1),
+    ("501 japanese characters is 2 minutes", "あ" * 501, 2),
+    ("100 words and 250 characters is 1 minute", "word " * 100 + "あ" * 250, 1),
+    ("URLs and markup do not count", "[text](https://example.com/" + "a/" * 500 + ") <b>x</b> - | ---" * 100, 1),
+]
+
 failed = 0
+for name, body, want in READS:
+    got = read_minutes(body)
+    print(("ok  " if got == want else "FAIL"), name, "" if got == want else got)
+    failed += got != want
 for name, text, kw, want in CASES:
     errs = check(text, kw.get("platform"), kw.get("langs"), kw.get("source"), kw.get("titles"), None, kw.get("skill"),
-                 kw.get("template", False))
+                 kw.get("template", False), kw.get("reads"))
     ok = (not errs) if not want else all(any(w in e for e in errs) for w in want)
     print(("ok  " if ok else "FAIL"), name, "" if ok else errs)
     failed += not ok
