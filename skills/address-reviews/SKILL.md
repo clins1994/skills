@@ -82,7 +82,9 @@ A bot comment that comes back after a round where you marked it **won't fix** me
 
 ### 5. Commit and push
 
-Small commits, one per comment or per group of comments about the same thing. The message says what changed and which comment it answers, in the repo's commit style, with your co-author footer. Push without force.
+Small commits, one per comment or per group of comments about the same thing. The message says what changed and which comment it answers, in the repo's commit style, with your co-author footer.
+
+Before you push, record what each bot's skill needs to tell its next review from the last one (for Greptile: "Waiting for a review" in `clins:greptile`). Do it in a round with no commit too, before you ask for a review in step 7. Then push without force.
 
 ### 6. Reply and resolve
 
