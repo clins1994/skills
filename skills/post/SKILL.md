@@ -128,7 +128,7 @@ Block titles: 🇬🇧 More details, 🇯🇵 詳細, 🇨🇳 详细信息, �
   🤖 Generated with [Claude Code](https://claude.com/claude-code) using [clins:<skill>](https://github.com/clins1994/skills/blob/main/skills/<skill>/SKILL.md)
   ```
 
-  `<skill>` is `create-pr`, `raycast-publish`, `github` or `linear` when one of them sent you here, and `post` when the user ran this skill directly. Name only that one skill. It links to the skills it uses.
+  `<skill>` is the skill that sent you here (for example `create-pr`, `github` or `linear`), and `post` when the user ran this skill directly. Name only that one skill. It links to the skills it uses.
 - **Short post:** when the details add nothing ("Fixed in abc1234. Please review again."), post only the leads. No divider, no block, no footer.
 - Anything a bot adds below the footer (for example a review summary) is not yours. Never edit it.
 
