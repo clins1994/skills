@@ -117,6 +117,7 @@ Lead japanese, also english, when english is the source:
 Block titles: 🇬🇧 More details, 🇯🇵 詳細, 🇨🇳 详细信息, 🇹🇼 詳細資訊, 🇰🇷 자세한 내용, 🇧🇷 Mais detalhes, 🇵🇹 Mais detalhes, 🇪🇸 Más detalles, 🇫🇷 Plus de détails, 🇩🇪 Weitere Details, 🇮🇹 Altri dettagli, 🇮🇳 अधिक विवरण, 🇩🇰 Flere detaljer, 🇦🇿 Ətraflı. For another language, use its flag and translate "More details" in the same short way.
 
 - An @mention line, if any, goes first.
+- When the repo's template has its own sections (for example `## Description`, `## Checklist`), keep every one of them. The lead and the blocks go in the first section, under its heading. The other sections follow in the template's order, and the footer comes after them.
 - One lead per language, each its own paragraph, in the post's language order. Then one block per language, in the same order.
 - A blank line goes above `---`. Without it, Markdown can turn the lead into a heading.
 - Every block is collapsed.
@@ -127,7 +128,7 @@ Block titles: 🇬🇧 More details, 🇯🇵 詳細, 🇨🇳 详细信息, �
   🤖 Generated with [Claude Code](https://claude.com/claude-code) using [clins:<skill>](https://github.com/clins1994/skills/blob/main/skills/<skill>/SKILL.md)
   ```
 
-  `<skill>` is `create-pr`, `github` or `linear` when one of them sent you here, and `post` when the user ran this skill directly. Name only that one skill. It links to the skills it uses.
+  `<skill>` is `create-pr`, `raycast-publish`, `github` or `linear` when one of them sent you here, and `post` when the user ran this skill directly. Name only that one skill. It links to the skills it uses.
 - **Short post:** when the details add nothing ("Fixed in abc1234. Please review again."), post only the leads. No divider, no block, no footer.
 - Anything a bot adds below the footer (for example a review summary) is not yours. Never edit it.
 
@@ -161,7 +162,7 @@ python3 <skill-dir>/scripts/check_post.py --platform linear --langs ja,en --sour
 python3 <skill-dir>/scripts/check_post.py --langs pt --title "pt=🇧🇷 Mais detalhes" post.md     # set a title the script does not know
 ```
 
-Add `--skill <name>` to require that skill in the footer. It checks:
+Add `--skill <name>` to require that skill in the footer. Add `--template` when the post follows a repo template whose heading comes before the lead. It checks:
 
 - one lead per language, the "original" label when the source is not the lead, and a lead of at most two sentences
 - the divider, the block titles and their order, that blocks are collapsed and closed, and that no `<summary>` holds a heading

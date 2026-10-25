@@ -128,7 +128,7 @@ def style(lang: str, lines) -> list[str]:
 
 def check(text: str, platform: str | None, langs: list[str] | None = None, source: str | None = None,
           titles: dict[str, str] | None = None, labels: dict[str, str] | None = None,
-          skill: str | None = None):
+          skill: str | None = None, template: bool = False):
     err: list[str] = []
     langs = langs or ["en"]
     source = source or langs[0]
@@ -170,6 +170,9 @@ def check(text: str, platform: str | None, langs: list[str] | None = None, sourc
     head = text[: blocks[0][0]] if blocks else text
     lines = head.strip().split("\n")
     lines = lines[1:] if lines and lines[0].startswith("@") else lines
+    if template:  # The repo's PR template opens with its own heading, such as "## Description".
+        while lines and (lines[0].startswith("#") or not lines[0].strip()):
+            lines = lines[1:]
 
     # Leads: one paragraph per language, in order.
     paras = re.split(r"\n\s*\n", "\n".join(lines).strip())
@@ -244,6 +247,8 @@ def main() -> int:
     ap.add_argument("--title", action="append", default=[], help="block title for a language, code=title")
     ap.add_argument("--label", action="append", default=[], help="'original' label in a language, code=label")
     ap.add_argument("--skill", help="the skill the footer must name, for example create-pr")
+    ap.add_argument("--template", action="store_true",
+                    help="the post follows a repo template whose heading comes before the lead")
     a = ap.parse_args()
     text = sys.stdin.read() if a.path == "-" else open(a.path, encoding="utf-8").read()
     text = re.sub(r"\]\(<([^>\s]+)>\)", r"](\1)", text.replace("\r\n", "\n"))  # Linear links
@@ -251,7 +256,8 @@ def main() -> int:
     if foot:
         text = text[: foot.end()] + "\n"  # Bot sections below the footer are not ours.
     langs = [l.strip() for l in a.langs.split(",") if l.strip()]
-    errors = check(text, a.platform, langs, a.source, pairs(a.title, "--title"), pairs(a.label, "--label"), a.skill)
+    errors = check(text, a.platform, langs, a.source, pairs(a.title, "--title"), pairs(a.label, "--label"), a.skill,
+                   a.template)
     for e in errors:
         print(f"error: {e}")
     print(f"{len(errors)} error(s)")

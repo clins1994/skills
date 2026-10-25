@@ -85,6 +85,22 @@ GH_PT_JA = f"""Adiciona novas tentativas ao upload. Confira os tempos de espera.
 {FOOTER}
 """
 
+# A repo PR template: its heading comes before the lead, its other sections after the block.
+GH_TEMPLATE = f"""## Description
+
+Adds retry to the upload step. Please review the backoff values.
+
+---
+
+{EN_BLOCK}
+
+## Checklist
+
+- [x] I ran the tests
+
+{FOOTER}
+"""
+
 LINEAR_EN = f"""Fix the login redirect. Done when the e2e test passes.
 
 ---
@@ -146,11 +162,17 @@ CASES = [
     ("create-pr footer passes", GH_EN.replace(FOOTER, footer("create-pr")), dict(skill="create-pr"), []),
     ("footer name must match its link", GH_EN.replace("[clins:post]", "[clins:linear]"), {}, ["links to"]),
     ("footer must name the running skill", GH_EN, dict(skill="linear"), ["comes from clins:linear"]),
+    ("template heading above the lead passes", GH_TEMPLATE, dict(platform="github", template=True), []),
+    ("template heading needs --template", GH_TEMPLATE, dict(platform="github"), ["not a heading"]),
+    ("template body still needs a lead", GH_TEMPLATE.replace(
+        "Adds retry to the upload step. Please review the backoff values.\n\n", ""),
+     dict(template=True), ["lead sentence"]),
 ]
 
 failed = 0
 for name, text, kw, want in CASES:
-    errs = check(text, kw.get("platform"), kw.get("langs"), kw.get("source"), kw.get("titles"), None, kw.get("skill"))
+    errs = check(text, kw.get("platform"), kw.get("langs"), kw.get("source"), kw.get("titles"), None, kw.get("skill"),
+                 kw.get("template", False))
     ok = (not errs) if not want else all(any(w in e for e in errs) for w in want)
     print(("ok  " if ok else "FAIL"), name, "" if ok else errs)
     failed += not ok
