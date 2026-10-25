@@ -83,7 +83,7 @@ gh api -X PATCH repos/<owner>/<repo>/issues/comments/<id> -F body=@post.md
 
 ## Reply in a review thread
 
-Reply in the thread, not as a new top-level comment. `<id>` is the review comment's id, from `gh api repos/<owner>/<repo>/pulls/<n>/comments`:
+Reply in the thread, not as a new top-level comment. `<id>` is the review comment's id: its `id` in `gh api repos/<owner>/<repo>/pulls/<n>/comments`, or the `databaseId` of the thread's first comment in the GraphQL `reviewThreads` query. Both are the same number:
 
 ```bash
 gh api repos/<owner>/<repo>/pulls/<n>/comments/<id>/replies -F body=@post.md
