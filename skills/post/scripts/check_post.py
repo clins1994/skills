@@ -6,6 +6,7 @@
     python3 check_post.py --platform linear --langs ja,en --source en post.md
     python3 check_post.py --langs pt --title "pt=🇧🇷 Mais detalhes" post.md
     python3 check_post.py --read-time post.md   # print each block's read time and stop
+    python3 check_post.py --langs auto post.md  # read the languages from the block titles (for old posts)
     gh pr view 12 --json body -q .body | python3 check_post.py -
 
 Every language gets a sentence-length check. English text also gets the english style
@@ -45,6 +46,8 @@ KNOWN = {
     "az": ("🇦🇿 Ətraflı", "Orijinal", "{n} dəq oxuma"),
 }
 EN_TITLE = KNOWN["en"][0]
+# Block titles from older versions, so --langs auto can read an old post.
+LEGACY = {"🇬🇧 More details (for agents)": "en", "🇯🇵 詳細（エージェント向け）": "ja"}
 
 
 def footer(skill: str = "post") -> str:
@@ -142,6 +145,24 @@ def style(lang: str, lines) -> list[str]:
         if base(lang) in TIGHT_MIX and re.search(rf"[{CJK}] [A-Za-z0-9]|[A-Za-z0-9] [{CJK}]", line):
             err.append(f"Space between full-width and half-width text ({lang}): {line[:40]}…")
     return err
+
+
+def detect(text: str) -> tuple[list[str], str]:
+    """The post's languages, in block order, and its source: the language whose lead
+    carries the lead language's "original" label, or else the lead language."""
+    by_title = {**LEGACY, **{t: code for code, (t, _, _) in reversed(KNOWN.items())}}
+    langs = []
+    for _, title, _, _ in sorted([(m.start(), *re.sub(r"<[^>]+>", "", m["t"]).strip().partition(READ_SEP)[::2], m["b"])
+                                  for rx in (GITHUB, LINEAR) for m in rx.finditer(text)]):
+        if title in by_title and by_title[title] not in langs:
+            langs.append(by_title[title])
+    langs = langs or ["en"]
+    label = KNOWN[langs[0]][1]
+    paras = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
+    for lang, para in zip(langs[1:], paras[1:len(langs)]):
+        if para.startswith(f"{label}:"):
+            return langs, lang
+    return langs, langs[0]
 
 
 def check(text: str, platform: str | None, langs: list[str] | None = None, source: str | None = None,
@@ -269,7 +290,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("path", help="post file, or - for stdin")
     ap.add_argument("--platform", choices=("github", "linear"))
-    ap.add_argument("--langs", default="en", help="language codes in order, lead first, for example en,ja")
+    ap.add_argument("--langs", default="en",
+                    help="language codes in order, lead first, for example en,ja, or auto to read them from the block titles")
     ap.add_argument("--source", help="the language the post was written in (default: the lead)")
     ap.add_argument("--title", action="append", default=[], help="block title for a language, code=title")
     ap.add_argument("--label", action="append", default=[], help="'original' label in a language, code=label")
@@ -298,7 +320,12 @@ def main() -> int:
                 print(f"{title}{READ_SEP}{phrase.format(n=read_minutes(m['b']))}")
         return 0
     langs = [l.strip() for l in a.langs.split(",") if l.strip()]
-    errors = check(text, a.platform, langs, a.source, pairs(a.title, "--title"), pairs(a.label, "--label"), a.skill,
+    source = a.source
+    if langs == ["auto"]:
+        langs, found = detect(text)
+        source = source or found
+        print(f"langs: {','.join(langs)}, source: {source}")
+    errors = check(text, a.platform, langs, source, pairs(a.title, "--title"), pairs(a.label, "--label"), a.skill,
                    a.template, pairs(a.read, "--read"))
     for e in errors:
         print(f"error: {e}")

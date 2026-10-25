@@ -4,7 +4,7 @@ import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from check_post import EN_TITLE, FOOTER, check, footer, read_minutes  # noqa: E402
+from check_post import EN_TITLE, FOOTER, check, detect, footer, read_minutes  # noqa: E402
 
 GH_EN = f"""Adds retry to the upload step. Please review the backoff values.
 
@@ -187,7 +187,22 @@ READS = [
     ("URLs and markup do not count", "[text](https://example.com/" + "a/" * 500 + ") <b>x</b> - | ---" * 100, 1),
 ]
 
+# detect: languages from the block titles, the source from the "original" label.
+DETECTS = [
+    ("english only", GH_EN, (["en"], "en")),
+    ("english lead, also japanese", GH_EN_JA, (["en", "ja"], "en")),
+    ("japanese lead, english source", GH_JA_EN, (["ja", "en"], "en")),
+    ("portuguese and japanese", GH_PT_JA, (["pt", "ja"], "pt")),
+    ("old titles", GH_JA_EN.replace("🇯🇵 詳細", "🇯🇵 詳細（エージェント向け）").replace(EN_TITLE, "🇬🇧 More details (for agents)"),
+     (["ja", "en"], "en")),
+    ("short post", "Fixed.\n", (["en"], "en")),
+]
+
 failed = 0
+for name, text, want in DETECTS:
+    got = detect(text)
+    print(("ok  " if got == want else "FAIL"), "detect:", name, "" if got == want else got)
+    failed += got != want
 for name, body, want in READS:
     got = read_minutes(body)
     print(("ok  " if got == want else "FAIL"), name, "" if got == want else got)

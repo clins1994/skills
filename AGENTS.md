@@ -11,6 +11,8 @@ A skill can be installed alone, or with only some of the others (a team pack may
 - A skill never names the skills that call it. Describe what a caller can pass instead (an input, a setting). The calling skill names the skill it calls, not the other way round.
 - When a skill hands off to another skill that is not one of its basic dependencies (`post`, and the host skill such as `github`), make the step conditional: "if `clins:<name>` is installed", with what to do without it.
 
+When a change to `post`, `create-pr`, `github` or `linear` changes how a post looks, add an entry to `skills/migrate-posts/references/migrations.md` in the same PR, so open posts can catch up.
+
 Run `claude plugin validate .` after you add a skill or change a manifest.
 
 Bump `version` in `.claude-plugin/plugin.json` in every PR that changes a skill or a manifest. Use semver: a minor bump for a new skill, a patch bump for fixes. `claude plugin update` compares this version, so without a bump installed copies do not update.
