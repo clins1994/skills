@@ -71,16 +71,17 @@ Fetch each body (`gh pr view <url> --json body -q .body`, `gh issue view`, or `g
 ### 5. Plan each post
 
 1. Cut the body after the footer line, and keep the rest aside. Bots own it.
-2. Run the new check on the part above:
+2. Look at the line endings above the footer. GitHub's web editor saves CRLF, and the check reads only LF. With CRLF, work on an LF copy and put CRLF back before you write. With mixed line endings, report the post and skip it.
+3. Run the new check on the part above:
 
    ```bash
    python3 <new-folder>/skills/post/scripts/check_post.py --platform <github|linear> --langs auto body.md
    ```
 
    It prints the languages it found, then the errors. If it says the post must start with a lead, not a heading, run it again with `--template`. If no language has a block title, ask the user for that language's code, "original" label and read time, and run it again with `--title`, `--label` and `--read`. Under "no dry run", report the post and skip it.
-3. Match each error to the migrations. An error that no migration fixes goes in **Left as is**.
-4. No errors that a migration fixes: the post is up to date.
-5. Otherwise, apply the matched migrations to a copy, oldest version first, and check the copy again. One fix can show an error that another one hid: the read time is checked only on a current block title, so a post with an old title shows the read-time error only after `0.1.3`. Add the migrations for the new errors, and repeat until the check shows no error that a migration fixes. The plan is every migration you applied to the copy.
+4. Match each error to the migrations. An error that no migration fixes goes in **Left as is**.
+5. No errors that a migration fixes: the post is up to date.
+6. Otherwise, apply the matched migrations to a copy, oldest version first, and check the copy again. One fix can show an error that another one hid: the read time is checked only on a current block title, so a post with an old title shows the read-time error only after `0.1.3`. Add the migrations for the new errors, and repeat until the check shows no error that a migration fixes. The plan is every migration you applied to the copy.
 
 ### 6. Dry run
 
@@ -98,7 +99,7 @@ Show one table for all accounts, then ask once (with the question tool, if the a
 1. Fetch it again. If it differs from the plan, plan it again and, outside "no dry run", ask again.
 2. Save the body you just fetched, the one you will change, to `~/.config/clins/migrate-posts/backups/<date>/<host>-<owner>-<repo>-<number>.md` (`linear-<ID>.md` for Linear).
 3. Apply the planned migrations, oldest version first, exactly as written.
-4. Check the new text. Only the **Left as is** errors may remain. Otherwise, do not write the post. Report it.
+4. Check the new text. Only the **Left as is** errors may remain. Then compare the new body with the old one: only what the migrations describe changed. For example, the old body is the new one without the inserted read times. Otherwise, do not write the post. Report it.
 5. Write it with the host skill: [`clins:github`](../github/SKILL.md) (`gh pr edit` or `gh issue edit` with `--body-file`, the part below the footer put back unchanged) or [`clins:linear`](../linear/SKILL.md) (`save_issue` with `patch`, only the lines that change).
 6. Fetch it once more, and make sure that it matches what you wrote.
 
