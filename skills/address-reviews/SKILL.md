@@ -51,7 +51,7 @@ A round can wait up to 10 minutes for a bot, so a full run can take an hour. Run
 - Fix what is clear: format, lint, type errors, a test that the PR broke.
 - Do not fix what is not yours or not clear: a flaky test, an outage, a secret that is missing, a failure that is on the base branch too. Note it in the report and go on.
 
-Checks that are still running do not block the round.
+Checks that are still running do not block the round. Step 8 waits for them before it calls the PR done.
 
 ### 2. Collect
 
@@ -106,9 +106,11 @@ If a bot's wait times out, stop the loop and report. Do not go on with its old r
 
 ### 8. Done?
 
+First wait for CI on the current head to finish: `gh pr checks <n> -R <owner>/<repo> --watch`, as a background command or with a 600000 ms timeout. If it is still running after that, say so in the report. A check that failed since step 1 goes back to step 1 in the next round.
+
 Stop when all of these hold:
 
-- No CI failure that you can fix.
+- No CI failure on the current head that you can fix.
 - Every bot with a skill is done (its skill says when).
 - No bot thread is open, except parked ones.
 - Every thread from a person has a reply.
