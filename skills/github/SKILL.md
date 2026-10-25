@@ -28,7 +28,7 @@ This skill uses the `gh` CLI. It does not cover the GitHub MCP server yet ([`CON
 ## GitHub syntax
 
 - Collapsed block: `<details><summary><b>🇬🇧 More details</b> · 3 min read</summary>`, a blank line, the content, a blank line, `</details>`. The blank line after `</summary>` is required, or GitHub shows raw Markdown. Use `<b>`, not a heading, in `<summary>`, and keep the read time outside the `<b>`. A heading adds its own top margin below the `---` divider, so the gap doubles.
-- Footer block: `<details><summary>🤖 Generated with Claude Code · <model> · clins:<skill></summary>`, a blank line, the lines from `clins:post`, a blank line, `</details>`. Plain text in `<summary>`, no `<b>`, so it reads quieter than the details.
+- Footer block: `<details><summary>🤖 Generated with Claude Code · <model> · clins:<skill></summary>`, a blank line, the lines from `clins:post`, a blank line, `</details>`. A `---` divider goes directly above it, with blank lines around it. Plain text in `<summary>`, no `<b>`, so it reads quieter than the details.
 - Never `<details open>`. Never Linear's `>>>`.
 - Mention: `@login`. Link: `#123` or `owner/repo#123`.
 - Check with `check_post.py --platform github --skill github` (or `--skill create-pr` for a pull request body).

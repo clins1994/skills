@@ -21,6 +21,8 @@ GH_EN = f"""Adds retry to the upload step. Please review the backoff values.
 
 </details>
 
+---
+
 {FOOTER}
 """
 
@@ -51,6 +53,8 @@ GH_JA_EN = f"""アップロードに再試行を足しました。待ち時間�
 
 {EN_BLOCK}
 
+---
+
 {FOOTER}
 """
 
@@ -64,6 +68,8 @@ GH_EN_JA = f"""Adds retry to the upload step. Please review the backoff values.
 {EN_BLOCK}
 
 {JA_BLOCK}
+
+---
 
 {FOOTER}
 """
@@ -85,6 +91,8 @@ GH_PT_JA = f"""Adiciona novas tentativas ao upload. Confira os tempos de espera.
 
 {JA_BLOCK}
 
+---
+
 {FOOTER}
 """
 
@@ -100,6 +108,8 @@ Adds retry to the upload step. Please review the backoff values.
 ## Checklist
 
 - [x] I ran the tests
+
+---
 
 {FOOTER}
 """
@@ -119,6 +129,8 @@ LINEAR_EN = f"""Fix the login redirect. Done when the e2e test passes.
 The redirect drops the query string.
 
 >>>
+
+---
 
 {footer("post", "linear")}
 """
@@ -176,8 +188,15 @@ CASES = [
     ("footer with a model and more lines passes", GH_EN.replace(FOOTER, footer("post", model="Opus 5.5").replace(
         "- Skills:", "- Models: Opus 5.5 (`claude-opus-5-5`) wrote it.\n- Skills:")), {}, []),
     ("old one-line footer fails", GH_EN.replace(FOOTER, OLD), {}, ["old one-line footer"]),
-    ("footer before the blocks fails", GH_EN.replace(FOOTER, "").replace("---\n", "---\n\n" + FOOTER + "\n"),
+    ("footer before the blocks fails", GH_EN.replace("---\n\n" + FOOTER, "").replace("---\n", "---\n\n" + FOOTER + "\n"),
      {}, ["after the details blocks"]),
+    ("footer without a divider above it fails", GH_EN.replace("---\n\n" + FOOTER, FOOTER), {}, ["divider (---) above the footer"]),
+    ("divider with no blank line above it fails", GH_EN.replace("\n\n---\n\n" + FOOTER, "\n---\n\n" + FOOTER), {},
+     ["divider (---) above the footer"]),
+    ("template footer without a divider fails", GH_TEMPLATE.replace("---\n\n" + FOOTER, FOOTER),
+     dict(template=True), ["divider (---) above the footer"]),
+    ("linear footer without a divider fails", LINEAR_EN.replace("---\n\n>>> 🤖", ">>> 🤖"), dict(platform="linear"),
+     ["divider (---) above the footer"]),
     ("footer must link Claude Code", GH_EN.replace("[Claude Code](https://claude.com/claude-code)", "Claude Code"),
      {}, ["must link Claude Code"]),
     ("footer block is not a details block", GH_EN, dict(langs=["en"]), []),
@@ -237,7 +256,7 @@ DETECTS = [
 # fix: an old post (no read times, one-line footer) catches up, and only its format changes.
 def old(post: str, platform: str = "github") -> str:
     post = re.sub(r" · (?:\d+ min read|読了目安\d+分|\d+ min de leitura)", "", post)
-    new = footer("post", platform)
+    new = "---\n\n" + footer("post", platform)
     return post.replace(new, OLD) if new in post else post
 
 
@@ -304,9 +323,19 @@ for name, ok in [
     ("fenced examples do not change, and the footer stays GitHub", fix(old(GH_EN).replace("- Retry three times.", FENCED)) == GH_FENCED),
     ("a fenced example is not a block or a footer", check(GH_FENCED, "github") == []),
     ("the CLI reports a footer above the blocks",
-     "after the details blocks" in cli(GH_EN.replace(FOOTER, "").replace("---\n", "---\n\n" + FOOTER + "\n"))),
+     "after the details blocks" in cli(GH_EN.replace("---\n\n" + FOOTER, "").replace("---\n", "---\n\n" + FOOTER + "\n"))),
     ("the CLI does not check a bot block below the footer", "0 error(s)" in cli(GH_EN + BOT, "--platform", "github")),
     ("the CLI reads saved Linear links", "0 error(s)" in cli(saved_on_linear(LINEAR_EN) + LINEAR_BOT, "--platform", "linear")),
+    ("a footer block gets its divider", fix(GH_EN.replace("---\n\n" + FOOTER, FOOTER)) == GH_EN),
+    ("a template footer gets its divider right above it",
+     fix(GH_TEMPLATE.replace("---\n\n" + FOOTER, FOOTER)) == GH_TEMPLATE),
+    ("a linear footer gets its divider", fix(LINEAR_EN.replace("---\n\n>>> 🤖", ">>> 🤖") + LINEAR_BOT)
+     == LINEAR_EN + LINEAR_BOT),
+    ("a CRLF footer gets its divider", fix(GH_EN.replace("---\n\n" + FOOTER, FOOTER).replace("\n", "\r\n"))
+     == GH_EN.replace("\n", "\r\n")),
+    ("a divider without its blank lines gets them", fix(GH_EN.replace("\n\n---\n\n" + FOOTER, "\n---\n" + FOOTER)) == GH_EN),
+    ("a footer with its divider does not change, twice", fix(fix(GH_TEMPLATE)) == GH_TEMPLATE),
+    ("a footer with no text above it is left alone", fix(FOOTER + "\n") == FOOTER + "\n"),
     ("a custom title gets its read time", fix(GH_EN.replace(EN_TITLE, "🇽🇽 Custom").replace(" · 1 min read", ""),
                                              {"xx": "🇽🇽 Custom"}, {"xx": "{n} xx"}).count("🇽🇽 Custom</b> · 1 xx") == 1),
 ]:

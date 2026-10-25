@@ -81,6 +81,8 @@ One language:
 
 ▸ 🇬🇧 More details · 3 min read   (collapsed: the full text)
 
+---
+
 ▸ 🤖 Generated with Claude Code · Opus 5.5 · clins:<skill>   (collapsed: how it was made)
 ```
 
@@ -95,6 +97,8 @@ Lead english, also japanese:
 
 ▸ 🇬🇧 More details · 3 min read   (collapsed: the full english)
 ▸ 🇯🇵 詳細 · 読了目安3分      (collapsed: the full japanese)
+
+---
 
 ▸ 🤖 Generated with Claude Code · Opus 5.5 · clins:<skill>   (collapsed: how it was made)
 ```
@@ -111,6 +115,8 @@ Lead japanese, also english, when english is the source:
 ▸ 🇯🇵 詳細 · 読了目安3分      (collapsed: the full japanese)
 ▸ 🇬🇧 More details · 3 min read   (collapsed: the full english)
 
+---
+
 ▸ 🤖 Generated with Claude Code · Opus 5.5 · clins:<skill>   (collapsed: how it was made)
 ```
 
@@ -123,7 +129,7 @@ Block titles: 🇬🇧 More details, 🇯🇵 詳細, 🇨🇳 详细信息, �
 - Every block is collapsed.
 - Each block title ends with its read time, after ` · `, so a reader knows the cost before they open it. The script counts it from that block's own text: 200 words a minute, or 500 characters a minute for japanese, chinese, korean and thai, rounded up, at least 1 minute. Run `check_post.py --read-time post.md` to print every title with its time, and copy those titles. Read times: `{n} min read`, `読了目安{n}分`, `阅读约{n}分钟`, `閱讀約{n}分鐘`, `{n}분 분량`, `{n} min de leitura`, `{n} min de lectura`, `{n} min de lecture`, `{n} Min. Lesezeit`, `{n} min di lettura`, `{n} मिनट में पढ़ें`, `{n} min. læsning`, `{n} dəq oxuma`. For another language, translate `{n} min read` in the same short way.
 - With more than one language, all blocks say the same thing, with the same headings, lists and code. Edit them together.
-- Footer, last: one collapsed block that says how the post was made. Its title is the line most readers see. Write the footer once, in the lead language, never once per language.
+- Footer, last: one collapsed block that says how the post was made. Its title is the line most readers see. Write the footer once, in the lead language, never once per language. A divider goes directly above the footer block: a `---` line with a blank line above and below it, whatever comes before it (blocks, template sections, images).
 
   ```
   🤖 Generated with Claude Code · <model> · clins:<skill>
@@ -178,14 +184,14 @@ python3 <skill-dir>/scripts/check_post.py --read-time post.md                   
 python3 <skill-dir>/scripts/check_post.py --fix post.md > new.md                              # bring an older post's format up to date
 ```
 
-`--fix` makes the format changes the script can make by itself (read times, the footer block) and changes nothing else.
+`--fix` makes the format changes the script can make by itself (read times, the footer block and the divider above it) and changes nothing else.
 
 Add `--skill <name>` to require that skill in the footer. Add `--template` when the post follows a repo template whose heading comes before the lead. It checks:
 
 - one lead per language, the "original" label when the source is not the lead, and a lead of at most two sentences
 - the divider, the block titles and their order, that blocks are collapsed and closed, and that no `<summary>` holds a heading
 - the read time after each block title, counted from that block's text
-- the footer block: its title, last after the details blocks, the Claude Code link, and a `clins:<skill>` name that matches its link
+- the footer block: its title, last after the details blocks, the divider directly above it, the Claude Code link, and a `clins:<skill>` name that matches its link
 - english style on english text: em-dash, semicolon, curly quote, contraction, weak modal
 - sentence length in every language: 30 words, or 80 characters for languages written without spaces (japanese, chinese, thai). A link counts its text, not its URL.
 - no space between full-width and half-width text, for languages whose style guide asks for it (japanese)

@@ -93,6 +93,8 @@ CPM = 500
 WIDE = "぀-ヿ㐀-鿿가-힯฀-๿"
 READ_SEP = " · "
 
+# A divider goes directly above the footer block: a --- line with a blank line above and below it.
+DIVIDER_ABOVE = re.compile(r"\n[ \t]*\n---[ \t]*\n[ \t]*\n$")
 FENCE = re.compile(r"^[ \t]*```.*?^[ \t]*```[^\n]*$", re.S | re.M)
 GITHUB = re.compile(r"<details[^>]*>\s*<summary>(?P<t>.*?)</summary>\n\n(?P<b>.*?)\n</details>", re.S)
 LINEAR = re.compile(r"^>>> (?P<t>[^\n]+)\n(?P<b>.*?)\n>>>$", re.S | re.M)
@@ -229,6 +231,24 @@ def fix_footer(top: str) -> str:
     return top[: old.start()] + footer(old["a"], platform) + top[old.end():]
 
 
+def fix_divider(top: str) -> str:
+    """0.9.0: a divider goes directly above the footer block."""
+    m, _ = find_footer(top)
+    if not m or DIVIDER_ABOVE.search(top[: m.start()]):
+        return top
+    lines = top[: m.start()].split("\n")
+    k = len(lines)
+    while k and not lines[k - 1].strip():
+        k -= 1
+    if k and lines[k - 1].strip() == "---":  # A divider without its blank lines.
+        k -= 1
+        while k and not lines[k - 1].strip():
+            k -= 1
+    if not k:
+        return top
+    return "\n".join(lines[:k]) + "\n\n---\n\n" + top[m.start():]
+
+
 def fix(text: str, titles: dict[str, str] | None = None, reads: dict[str, str] | None = None) -> str:
     """The post with every fix applied, above the footer only. Text below it is the bots'."""
     end = footer_end(text.replace("\r\n", "\n"))
@@ -250,7 +270,7 @@ def fix(text: str, titles: dict[str, str] | None = None, reads: dict[str, str] |
         r = (reads or {}).get(code) or KNOWN.get(code, (None,) * 3)[2]
         if t and r:
             phrases[t] = r
-    new = fix_footer(fix_read_time(top, phrases))
+    new = fix_divider(fix_footer(fix_read_time(top, phrases)))
     return (new.replace("\n", "\r\n") if crlf else new) + rest
 
 
@@ -412,6 +432,8 @@ def check(text: str, platform: str | None, langs: list[str] | None = None, sourc
         elif not foot:
             err.append("The footer block is missing or its title changed. Copy it from SKILL.md.")
         else:
+            if not DIVIDER_ABOVE.search(text[: foot.start()]):
+                err.append("Put a divider (---) above the footer block, with a blank line above and below it.")
             links = SKILL_LINK.findall(foot["b"])
             if CLAUDE_CODE not in foot["b"]:
                 err.append(f"The footer block must link Claude Code: {CLAUDE_CODE}.")
@@ -462,7 +484,7 @@ def main() -> int:
     ap.add_argument("--read-time", action="store_true",
                     help="print each block's title with its read time, for the summary line, and stop")
     ap.add_argument("--fix", action="store_true",
-                    help="print the post with its format brought up to date (read times, footer block), and stop")
+                    help="print the post with its format brought up to date (read times, footer block, its divider), and stop")
     ap.add_argument("--template", action="store_true",
                     help="the post follows a repo template whose heading comes before the lead")
     a = ap.parse_args()
