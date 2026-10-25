@@ -83,21 +83,34 @@ A review request is a command to the bot, not a post: do not write it with `clin
 
 ## Waiting for a review
 
-Wait for the Greptile check run on the current head to complete:
+Wait for a **new** Greptile check run to complete. When you ask for a review without a new commit, the review runs on the same head, and the check run that is already there is the old review.
+
+Before you push or ask for a review, record the ids of the Greptile check runs on the head, and the summary's `updated_at` (for a summary in the PR body, its "Reviews (N)" count):
 
 ```bash
-HEAD_SHA=$(gh pr view <n> --json headRefOid -q .headRefOid)
+greptile_runs() {   # prints "<id> <status>" for each Greptile check run on commit $1
+  gh api "repos/<owner>/<repo>/commits/$1/check-runs" \
+    --jq '.check_runs[] | select(.name | test("greptile"; "i")) | "\(.id) \(.status)"'
+}
+OLD_SHA=$(gh pr view <n> -R <owner>/<repo> --json headRefOid -q .headRefOid)
+greptile_runs "$OLD_SHA" | cut -d' ' -f1 > before.txt    # in a temporary folder
+echo 0 >> before.txt                                      # so the list is never empty
+```
+
+Then push or ask, and wait until a check run on the head that is not in `before.txt` completes:
+
+```bash
+HEAD_SHA=$(gh pr view <n> -R <owner>/<repo> --json headRefOid -q .headRefOid)
 for i in $(seq 1 60); do                       # 60 x 10 s = 10 minutes
-  STATUS=$(gh api "repos/<owner>/<repo>/commits/$HEAD_SHA/check-runs" \
-    --jq '[.check_runs[] | select(.name | test("greptile"; "i")) | .status] | last // "missing"')
-  [ "$STATUS" = "completed" ] && echo done && break
+  greptile_runs "$HEAD_SHA" | grep -v -w -F -f before.txt | grep -q ' completed$' \
+    && echo done && break
   sleep 10
 done
 ```
 
 - This takes up to 10 minutes. Run it as a background command, or give the shell call a 600000 ms timeout. A default two-minute timeout stops it early and looks like a missing review.
-- If it times out, stop and report. Do not read the score or comments as if a review had come: they are from the previous commit.
-- If the check run completes but the summary still shows an older commit, wait one more minute and read again. Greptile edits the summary after the check run ends.
+- If it times out, stop and report. Do not read the score or comments as if a review had come: they are from the previous review.
+- Read the summary only after it changed: a newer `updated_at` on the comment or review, or for a summary in the PR body, a higher "Reviews (N)" count. Greptile edits the summary after the check run ends. If it has not changed yet, wait one more minute and read again.
 
 ## Done
 
