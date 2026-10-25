@@ -47,11 +47,18 @@ def parse_command(command):
     if not m:
         return None
     rest = command[m.end():]
-    rest = re.split(r"&&|\|\||;|\n|\|", rest, maxsplit=1)[0]
+    # Tokenize first, so a separator inside a quoted title doesn't end the command.
+    lexer = shlex.shlex(rest, posix=True, punctuation_chars=";&|()<>\n")
+    lexer.whitespace_split = True
+    lexer.whitespace = " \t\r"
+    words = []
     try:
-        words = shlex.split(rest)
+        for w in lexer:
+            if set(w) <= set(";&|()\n"):
+                break
+            words.append(w)
     except ValueError:
-        words = rest.split()
+        words = re.split(r"&&|\|\||;|\n|\|", rest, maxsplit=1)[0].split()
     flags = {}
     names = {"-R": "repo", "--repo": "repo", "-H": "head", "--head": "head",
              "-B": "base", "--base": "base"}
@@ -107,6 +114,14 @@ def read_setting(repo, repo_root, global_file):
     return merged
 
 
+def any_guard(repo_root, global_file):
+    """True if any setting line, for any repo, sets mode ask or fork."""
+    sources = [os.path.join(repo_root, f) for f in REPO_FILES] if repo_root else []
+    sources.append(global_file)
+    return any(parse_setting(t).get("mode") in ("ask", "fork")
+               for path in sources for _, t in setting_lines(path))
+
+
 def target_repo(flags, cwd):
     if flags.get("repo"):
         return flags["repo"].split("github.com/")[-1].strip("/")
@@ -138,13 +153,16 @@ def check(command, cwd, global_file):
     if flags is None or SKIP in command:
         return None
     try:
-        repo = target_repo(flags, cwd)
-    except CheckFailed:
-        return None
-    try:
         root = run(["git", "rev-parse", "--show-toplevel"], cwd=cwd)
     except CheckFailed:
         root = None
+    try:
+        repo = target_repo(flags, cwd)
+    except CheckFailed as e:
+        if not any_guard(root, global_file):
+            return None
+        return decision("ask", f"clins:fork-review: could not tell which repo this PR "
+                        f"targets ({e}). Allow only if it should not get a fork review first.")
     setting = read_setting(repo, root, global_file)
     mode = setting.get("mode")
     if mode not in ("ask", "fork"):
@@ -206,6 +224,11 @@ def self_test():
         {"repo": "a/b", "head": "x:y"}
     assert parse_command("cd d && gh pr create --repo=a/b -B main | cat") == \
         {"repo": "a/b", "base": "main"}
+    assert parse_command('gh pr create --title "Fix imports; add tests" -R a/b --head me:t') == \
+        {"repo": "a/b", "head": "me:t"}
+    assert parse_command("gh pr create --title 'a && b | c' -R a/b\ngh pr create -R x/y") == \
+        {"repo": "a/b"}
+    assert parse_command("gh pr create -B main; gh pr create -R x/y") == {"base": "main"}
 
     assert parse_setting("mode fork; review /greploop, then @alice") == {"mode": "fork"}
     assert parse_setting("mode bogus") == {}
@@ -228,6 +251,24 @@ def self_test():
         assert check("gh pr create -R up/line", root, glob) is None
         assert check(f"{SKIP} gh pr create -R up/line", root, glob) is None
         assert read_setting("x/y", None, os.path.join(d, "missing")) == {}
+
+        # A failed repo lookup asks when any line guards, and passes when none does.
+        global run
+        real_run = run
+
+        def failing_gh(args, cwd=None):
+            if args[0] == "gh":
+                raise CheckFailed("offline")
+            return real_run(args, cwd)
+
+        run = failing_gh
+        try:
+            os.environ.pop("GH_REPO", None)
+            r = check("gh pr create --title t", root, glob)
+            assert r["hookSpecificOutput"]["permissionDecision"] == "ask", r
+            assert check("gh pr create --title t", root, os.path.join(d, "missing")) is None
+        finally:
+            run = real_run
     print("ok")
 
 
