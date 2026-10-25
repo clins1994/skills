@@ -179,7 +179,7 @@ gh api "repos/raycast/extensions/commits/<headRefOid>/check-runs?per_page=100" \
 ```
 
 - **Raycast's own checks** (last seen: app `github-actions`: the extension's build check named after its folder, `Check`, `changelog`, `metadata-images`): every one must be `completed` with the conclusion `success` or `skipped`. Any other result blocks the gate: still running, `failure`, `cancelled`, `timed_out`, `action_required`. If none of them is on the head yet, the gate does not hold.
-- **Greptile** (app `greptile-apps`): `5/5` on the current head and no open Greptile thread. If `clins:greptile` is installed, read both the way it says. Without it, read the score in Greptile's summary comment, check that its "Last reviewed commit" is the head, and count the open review threads by `greptile-apps`.
+- **Greptile** (app `greptile-apps`): `5/5` on the current head and no open Greptile thread. If `clins:greptile` is installed, read both the way it says. Without it, find Greptile's newest summary in its issue comment, its newest review, or the block it adds at the end of the PR body. The score is the first `N/5` in it. Use it only when it is for the head: the review's `commit_id`, or the "Last reviewed commit" link in the comment or the body. Then count the open review threads by `greptile-apps`.
 - **Any other app** (last seen: `socket-security`): does not block. These often start after Greptile finishes and run again on every push. Show their state to the user. If one failed, show what it flagged, and let the user decide.
 
 ### 8. Stop for the user, then mark it ready
