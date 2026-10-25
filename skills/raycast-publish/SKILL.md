@@ -166,7 +166,7 @@ Hand off to `clins:address-reviews` with:
 
 - the PR URL, and `-R raycast/extensions`,
 - the working folder: the extension folder (not the CLI's clone),
-- the push command: the publish command from step 6, run from that folder after each commit.
+- the push command: `GITHUB_ACCESS_TOKEN=$(gh auth token) npx @raycast/api@latest publish` (or the command the user chose in step 6), run from that folder after each commit. Pass it without the `| tee` from step 6, so that a failed publish fails the command.
 
 It loops until CI is green, Greptile is done with the current head (`5/5`, no open thread), and every person has a reply. A new publish can change the body: check it after each round, and fix it as in step 6.
 

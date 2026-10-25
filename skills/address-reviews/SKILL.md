@@ -94,7 +94,7 @@ Some PRs are not pushed with `git push`. For example, a Raycast extension lives 
 - a **working folder**: where to edit and commit, instead of a checkout of the head branch,
 - a **push command**: what to run from that folder after each commit, instead of `git push`.
 
-Read reviews, CI and threads from the PR as usual, with `-R <owner>/<repo>`. Commit in the working folder with the rules above. Run the push command, then read the PR's new `headRefOid`: that is the commit the next review is for. If the command fails, stop and report its output. Never push to the PR branch with `git` when an override is set.
+Read reviews, CI and threads from the PR as usual, with `-R <owner>/<repo>`. Commit in the working folder with the rules above. Run the push command, then read the PR's new `headRefOid`: that is the commit the next review is for. If the command fails, or the `headRefOid` did not change after a round with a commit, stop and report its output. Do not reply "fixed" or resolve threads for a fix that did not reach the PR. Never push to the PR branch with `git` when an override is set.
 
 ### 6. Reply and resolve
 
