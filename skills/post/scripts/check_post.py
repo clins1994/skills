@@ -165,18 +165,36 @@ def style(lang: str, lines) -> list[str]:
     return err
 
 
-def detect(text: str) -> tuple[list[str], str]:
+def parse(text: str, template: bool = False):
+    """The blocks, the lines above them, and the lead paragraphs. check() and detect() share it,
+    so both read the same leads.
+
+    blocks: (position, title, read time, body). The summary line is "<title> · <read time>"."""
+    blocks = sorted([(m.start(), *re.sub(r"<[^>]+>", "", m["t"]).strip().partition(READ_SEP)[::2], m["b"])
+                     for rx in (GITHUB, LINEAR) for m in rx.finditer(text)])
+    head = text[: blocks[0][0]] if blocks else text
+    lines = head.strip().split("\n")
+    lines = lines[1:] if lines and lines[0].startswith("@") else lines
+    if template:  # The repo's PR template opens with its own heading, such as "## Description".
+        while lines and (lines[0].startswith("#") or not lines[0].strip()):
+            lines = lines[1:]
+    # Leads: one paragraph per language, in order.
+    paras = re.split(r"\n\s*\n", "\n".join(lines).strip())
+    paras = [p.strip() for p in paras if p.strip() and p.strip() != "---" and not p.startswith(("|", "!["))]
+    return blocks, lines, paras
+
+
+def detect(text: str, template: bool = False) -> tuple[list[str], str]:
     """The post's languages, in block order, and its source: the language whose lead
     carries the lead language's "original" label, or else the lead language."""
     by_title = {**LEGACY, **{t: code for code, (t, _, _) in reversed(KNOWN.items())}}
+    blocks, _, paras = parse(text, template)
     langs = []
-    for _, title, _, _ in sorted([(m.start(), *re.sub(r"<[^>]+>", "", m["t"]).strip().partition(READ_SEP)[::2], m["b"])
-                                  for rx in (GITHUB, LINEAR) for m in rx.finditer(text)]):
+    for _, title, _, _ in blocks:
         if title in by_title and by_title[title] not in langs:
             langs.append(by_title[title])
     langs = langs or ["en"]
     label = KNOWN[langs[0]][1]
-    paras = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
     for lang, para in zip(langs[1:], paras[1:len(langs)]):
         if para.startswith(f"{label}:"):
             return langs, lang
@@ -224,19 +242,7 @@ def check(text: str, platform: str | None, langs: list[str] | None = None, sourc
     if len(re.findall(r"^>>>", stripped, re.M)) != 2 * len(LINEAR.findall(stripped)):
         err.append("A >>> block is not closed.")
 
-    # (position, title, read time, body). The summary line is "<title> · <read time>".
-    blocks = sorted([(m.start(), *re.sub(r"<[^>]+>", "", m["t"]).strip().partition(READ_SEP)[::2], m["b"])
-                     for rx in (GITHUB, LINEAR) for m in rx.finditer(text)])
-    head = text[: blocks[0][0]] if blocks else text
-    lines = head.strip().split("\n")
-    lines = lines[1:] if lines and lines[0].startswith("@") else lines
-    if template:  # The repo's PR template opens with its own heading, such as "## Description".
-        while lines and (lines[0].startswith("#") or not lines[0].strip()):
-            lines = lines[1:]
-
-    # Leads: one paragraph per language, in order.
-    paras = re.split(r"\n\s*\n", "\n".join(lines).strip())
-    paras = [p.strip() for p in paras if p.strip() and p.strip() != "---" and not p.startswith(("|", "!["))]
+    blocks, lines, paras = parse(text, template)
     if not paras or paras[0].startswith("#"):
         err.append("The post must start with a lead sentence, not a heading.")
         return err
@@ -333,7 +339,7 @@ def main() -> int:
     langs = [l.strip() for l in a.langs.split(",") if l.strip()]
     source = a.source
     if langs == ["auto"]:
-        langs, found = detect(text)
+        langs, found = detect(text, a.template)
         source = source or found
         print(f"langs: {','.join(langs)}, source: {source}")
     errors = check(text, a.platform, langs, source, pairs(a.title, "--title"), pairs(a.label, "--label"), a.skill,

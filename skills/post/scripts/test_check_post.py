@@ -211,11 +211,13 @@ DETECTS = [
     ("old titles", GH_JA_EN.replace("🇯🇵 詳細", "🇯🇵 詳細（エージェント向け）").replace(EN_TITLE, "🇬🇧 More details (for agents)"),
      (["ja", "en"], "en")),
     ("short post", "Fixed.\n", (["en"], "en")),
+    ("template heading", "## Description\n\n" + GH_JA_EN, (["ja", "en"], "en"), True),
+    ("mention line", "@reviewer\n\n" + GH_JA_EN, (["ja", "en"], "en")),
 ]
 
 failed = 0
-for name, text, want in DETECTS:
-    got = detect(text)
+for name, text, want, *template in DETECTS:
+    got = detect(text, *template)
     print(("ok  " if got == want else "FAIL"), "detect:", name, "" if got == want else got)
     failed += got != want
 for name, text, titles, reads, kw, want in SUMMARIES:
