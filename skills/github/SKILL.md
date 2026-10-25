@@ -12,7 +12,7 @@ This skill sends a post to GitHub. The text (leads, details blocks, languages, f
 ## Rules
 
 - Never merge, approve or close a PR.
-- Never post `@greptileai`. Greptile reviews every push by itself.
+- Never post a comment that asks a review bot for a review (`@greptileai ...`), unless that bot's skill says to (for Greptile, [`clins:greptile`](../greptile/SKILL.md), "Triggering"). Many bots review every push by themselves, and each request is a paid review.
 - Send text from a file (`--body-file`, `-F body=@file`), never inline, so newlines and backticks survive.
 - In a public repo, an attached image is public.
 
