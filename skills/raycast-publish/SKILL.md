@@ -178,13 +178,13 @@ gh api "repos/raycast/extensions/commits/<headRefOid>/check-runs?per_page=100" \
   --jq '.check_runs[] | "\(.app.slug) | \(.name) | \(.status) \(.conclusion // "")"'
 ```
 
-- **Raycast's own checks** (last seen: app `github-actions`: the extension's build check named after its folder, `Check`, `changelog`, `metadata-images`): every one completed, with no failure. Skipped is fine.
+- **Raycast's own checks** (last seen: app `github-actions`: the extension's build check named after its folder, `Check`, `changelog`, `metadata-images`): every one must be `completed` with the conclusion `success` or `skipped`. Any other result blocks the gate: still running, `failure`, `cancelled`, `timed_out`, `action_required`. If none of them is on the head yet, the gate does not hold.
 - **Greptile** (app `greptile-apps`): `5/5` on the current head and no open Greptile thread. If `clins:greptile` is installed, read both the way it says. Without it, read the score in Greptile's summary comment, check that its "Last reviewed commit" is the head, and count the open review threads by `greptile-apps`.
 - **Any other app** (last seen: `socket-security`): does not block. These often start after Greptile finishes and run again on every push. Show their state to the user. If one failed, show what it flagged, and let the user decide.
 
 ### 8. Stop for the user, then mark it ready
 
-With `ready after-review`, ask as soon as the ready gate (step 7) holds on the current head. Check the gate yourself. Do not wait for checks outside it, and do not wait for the loop to time out on them. If the gate does not hold (round cap, no change, a review that did not come, a failed Raycast check), keep the PR a draft, show what is left, and stop.
+With `ready after-review`, ask as soon as the ready gate (step 7) holds on the current head. Check the gate yourself. Do not wait for checks outside it, and do not wait for the loop to time out on them. If the gate does not hold (round cap, no change, a review that did not come, a Raycast check that did not pass), keep the PR a draft, show what is left, and stop.
 
 Show the PR URL, Greptile's score, what the loop fixed, what it parked, and any check still running outside the gate. Ask: "Mark it ready for review? This puts it in the Raycast reviewers' queue." On a clear yes:
 
