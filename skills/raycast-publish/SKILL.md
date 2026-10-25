@@ -172,6 +172,8 @@ It loops until CI is green, Greptile is done with the current head (`5/5`, no op
 
 Show the PR URL, Greptile's score, what the loop fixed, and what it parked. Ask: "Mark it ready for review? This puts it in the Raycast reviewers' queue." On a clear yes:
 
+With `ready after-review`, ask only when the loop's report says done: CI green, and Greptile `5/5` on the current head with no open thread. If it stopped for any other reason (round cap, no change, a review that did not come), keep the PR a draft, show what is left, and stop.
+
 ```bash
 gh pr ready <n> -R raycast/extensions
 ```
