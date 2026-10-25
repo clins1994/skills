@@ -3,8 +3,8 @@
 an upstream repo when the user's clins:fork-review setting wants a fork review.
 
 Reads the hook input (JSON) on stdin. Prints a permission decision as JSON, or
-nothing to let the command run. Every unexpected case lets the command run,
-except under `mode fork`, where a failed check asks the user instead.
+nothing to let the command run. With no `mode ask` or `mode fork` line, it
+makes no network call. When a line does guard and a check fails, it asks.
 
 Run `python3 pr_guard.py --test` for the self-tests.
 """
@@ -131,14 +131,31 @@ def target_repo(flags, cwd):
                 "-q", ".nameWithOwner"], cwd=cwd)
 
 
-def login_and_fork(repo):
-    owner, name = repo.split("/", 1)
-    query = ("query($o:String!,$n:String!){viewer{login} repository(owner:$o,name:$n)"
-             "{forks(first:1,affiliations:[OWNER]){nodes{nameWithOwner}}}}")
-    data = json.loads(run(["gh", "api", "graphql", "-f", f"query={query}",
-                           "-f", f"o={owner}", "-f", f"n={name}"]))["data"]
-    nodes = ((data.get("repository") or {}).get("forks") or {}).get("nodes") or []
-    return data["viewer"]["login"], (nodes[0]["nameWithOwner"] if nodes else None)
+PRS = "pullRequests(headRefName:$h,first:1,states:[OPEN,CLOSED,MERGED]){nodes{url}}"
+
+
+def lookup(repo, head, fork=None):
+    """One GraphQL call: the user's login, their fork of `repo` (or `fork`, when
+    the setting names it), and the URL of a PR for `head` on that fork."""
+    owner, name = (fork or repo).split("/", 1)
+    args = ["-f", f"o={owner}", "-f", f"n={name}", "-f", f"h={head}"]
+    if fork:
+        query = (f"query($o:String!,$n:String!,$h:String!){{viewer{{login}} "
+                 f"fork:repository(owner:$o,name:$n){{nameWithOwner {PRS}}}}}")
+    else:
+        query = (f"query($o:String!,$n:String!,$h:String!){{viewer{{login}} "
+                 f"repository(owner:$o,name:$n){{forks(first:1,affiliations:[OWNER])"
+                 f"{{nodes{{nameWithOwner {PRS}}}}}}}}}")
+    data = json.loads(run(["gh", "api", "graphql", "-f", f"query={query}"] + args))["data"]
+    if fork:
+        node = data.get("fork")
+    else:
+        nodes = ((data.get("repository") or {}).get("forks") or {}).get("nodes") or []
+        node = nodes[0] if nodes else None
+    if not node:
+        return data["viewer"]["login"], None, None
+    prs = node["pullRequests"]["nodes"]
+    return data["viewer"]["login"], node["nameWithOwner"], (prs[0]["url"] if prs else None)
 
 
 def decision(kind, reason):
@@ -156,11 +173,12 @@ def check(command, cwd, global_file):
         root = run(["git", "rev-parse", "--show-toplevel"], cwd=cwd)
     except CheckFailed:
         root = None
+    # No line sets ask or fork anywhere: skip every network call.
+    if not any_guard(root, global_file):
+        return None
     try:
         repo = target_repo(flags, cwd)
     except CheckFailed as e:
-        if not any_guard(root, global_file):
-            return None
         return decision("ask", f"clins:fork-review: could not tell which repo this PR "
                         f"targets ({e}). Allow only if it should not get a fork review first.")
     setting = read_setting(repo, root, global_file)
@@ -169,21 +187,20 @@ def check(command, cwd, global_file):
         return None
 
     try:
-        login, fork = login_and_fork(repo)
-        if repo.split("/")[0].lower() == login.lower():
-            return None
-        fork = setting.get("fork") or fork
-        if not fork:
-            return None
         head = flags.get("head", "")
         if ":" in head:
             head = head.split(":", 1)[1]
-        head = head or run(["git", "branch", "--show-current"], cwd=cwd)
+        if not head:
+            try:
+                head = run(["git", "branch", "--show-current"], cwd=cwd)
+            except CheckFailed:
+                head = ""
+        login, fork, found = lookup(repo, head, setting.get("fork"))
+        if repo.split("/")[0].lower() == login.lower() or not fork:
+            return None
         if not head:
             raise CheckFailed("no head branch")
-        found = run(["gh", "pr", "list", "-R", fork, "--head", head, "--state", "all",
-                     "--json", "url", "-q", ".[0].url"])
-    except (CheckFailed, KeyError, ValueError) as e:
+    except (CheckFailed, KeyError, ValueError, TypeError) as e:
         return decision("ask", f"clins:fork-review (mode {mode}): could not check for a "
                         f"review PR on your fork of {repo} ({e}). Allow only if this PR "
                         "should go straight to upstream.")
