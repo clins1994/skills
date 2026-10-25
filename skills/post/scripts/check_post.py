@@ -65,7 +65,7 @@ FOOTER_LINE = re.compile(rf"^🪴 Generated with {CC_LINK}(?: on (?P<model>[^()\
                          rf"using {SKILL_LINK}$", re.M)
 # An optional block right under the footer line: a summary of the session or sessions behind the work.
 BEHIND_TITLE = "💬 Behind the prompt"
-BEHIND_NOTE = ("> This is still a work in progress. The idea is to summarize the session or sessions "
+BEHIND_NOTE = ("> ℹ️ This is still a work in progress. The idea is to summarize the session or sessions "
                "that helped bring this work to life.")
 # A pull request or issue that the block names. GitHub adds a "mentioned" event to each one.
 REFERENCE = re.compile(r"(?<![\w/`])(?:[\w.-]+/[\w.-]+)?#\d+\b|https://github\.com/[^/\s]+/[^/\s]+/(?:pull|issues)/\d+")
@@ -448,9 +448,11 @@ def check(text: str, platform: str | None, langs: list[str] | None = None, sourc
         if stray:
             err.append(f"The {BEHIND_TITLE} block goes directly under the footer line.")
         if behind:
-            first = next((l.strip() for l in behind["b"].split("\n") if l.strip()), "")
-            if first != BEHIND_NOTE:
-                err.append(f"The {BEHIND_TITLE} block starts with this note: {BEHIND_NOTE}")
+            body = [l.strip() for l in behind["b"].split("\n") if l.strip()]
+            if body[:1] == ["<br>"]:  # GitHub sets a quote tight under the block title; a <br> line gives it room.
+                body = body[1:]
+            if body[:1] != [BEHIND_NOTE]:
+                err.append(f"The {BEHIND_TITLE} block starts with this note (on GitHub, after a <br> line): {BEHIND_NOTE}")
             refs = REFERENCE.findall(no_code(behind["b"]))
             if refs:
                 err.append(f"The {BEHIND_TITLE} block names {', '.join(refs)}. Say it in words: GitHub adds a "

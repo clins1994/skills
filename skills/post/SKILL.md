@@ -145,12 +145,15 @@ Block titles: 🇬🇧 More details, 🇯🇵 詳細, 🇨🇳 详细信息, �
   ```
   ▸ 💬 Behind the prompt   (collapsed)
 
-    > This is still a work in progress. The idea is to summarize the session or sessions that helped bring this work to life.
+    <br>
+
+    > ℹ️ This is still a work in progress. The idea is to summarize the session or sessions that helped bring this work to life.
 
     <a few sentences>
   ```
 
   - Keep the title and the note exactly as above, so the check can find them.
+  - On GitHub, the `<br>` line comes first, then a blank line, then the note: GitHub sets a quote tight under the block title. On Linear, leave out the `<br>` line.
   - Read the prompts of the session, or sessions, that made the work. Then tell in a few natural sentences how it came about: what started it, how the idea changed along the way, and what it ended up as. Write it like a short story told to a colleague, in the lead language, not as a form or a log.
   - It is a summary. Quote the user word for word only when they ask. Leave out secrets, private names, internal links, and anything the user did not want shared. In a public repo, it is public.
   - Name no pull request or issue (`#123`, `owner/repo#123`, or its URL). GitHub adds a "mentioned" event to each one. Say it in words, for example "the read-time change".

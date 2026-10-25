@@ -135,7 +135,7 @@ The redirect drops the query string.
 {FOOTER}
 """
 
-BEHIND = (f"\n<details><summary>{BEHIND_TITLE}</summary>\n\n{BEHIND_NOTE}\n\n"
+BEHIND = (f"\n<details><summary>{BEHIND_TITLE}</summary>\n\n<br>\n\n{BEHIND_NOTE}\n\n"
           "- Asked for a retry on the upload step.\n- One session wrote the code and the tests.\n\n</details>")
 LINEAR_BEHIND = (f"\n>>> {BEHIND_TITLE}\n\n{BEHIND_NOTE}\n\n- Asked for a fix to the redirect.\n\n>>>")
 GH_BEHIND = GH_EN.rstrip("\n") + "\n" + BEHIND + "\n"
@@ -209,6 +209,13 @@ CASES = [
     ("behind the prompt on Linear passes", LINEAR_EN.rstrip("\n") + "\n" + LINEAR_BEHIND + "\n", dict(platform="linear"), []),
     ("behind the prompt is not a details block", GH_BEHIND, dict(langs=["en"]), []),
     ("behind the prompt needs its note", GH_BEHIND.replace(BEHIND_NOTE + "\n\n", ""), {}, ["starts with this note"]),
+    ("behind the prompt passes without the <br> line", GH_BEHIND.replace("<br>\n\n", ""), {}, []),
+    ("behind the prompt on Linear passes with a <br> line",
+     LINEAR_EN.rstrip("\n") + "\n" + LINEAR_BEHIND.replace(BEHIND_NOTE, "<br>\n\n" + BEHIND_NOTE) + "\n",
+     dict(platform="linear"), []),
+    ("behind the prompt needs the note right after the <br> line",
+     GH_BEHIND.replace("<br>\n\n", "<br>\n\nA line first.\n\n"), {}, ["starts with this note"]),
+    ("behind the prompt needs the new note", GH_BEHIND.replace("> ℹ️ ", "> "), {}, ["starts with this note"]),
     ("behind the prompt names no pull request", GH_BEHIND.replace("the tests.", "the tests in #18."), {}, ["names #18"]),
     ("behind the prompt names no other repo's issue", GH_BEHIND.replace("the tests.", "the tests for beeper/line#284."),
      {}, ["names beeper/line#284"]),
