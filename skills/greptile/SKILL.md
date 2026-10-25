@@ -79,8 +79,8 @@ gh api graphql -f query='mutation {
 Find out once per PR whether Greptile reviews each push by itself:
 
 1. Read the repo's Greptile config if there is one (`greptile.json` or `.greptile/` at the root). It can turn reviews of new commits on or off.
-2. If the config does not say, look at the history of this PR and the last 3 merged PRs. Leave out the first Greptile check run on each PR: Greptile often reviews a PR when it opens, also on installs that do not review later pushes. For each later check run, look for a Greptile request comment (`@greptileai` or `@greptile`) up to 1 minute before the run started.
-   - Later runs with no request before them: Greptile reviews on push.
+2. If the config does not say, look at the history of this PR and the last 3 merged PRs. Leave out the first Greptile check run on each PR: Greptile often reviews a PR when it opens, also on installs that do not review later pushes. For each later check run, look for a Greptile request comment (`@greptileai` or `@greptile`) between the push of the run's commit and the start of the run. The run's `head_sha` is that commit, and its committer date (`gh api repos/<owner>/<repo>/commits/<sha> -q .commit.committer.date`) stands in for the push time. Do not use a fixed window: a requested review can start minutes after the request.
+   - Later runs with no request in that span: Greptile reviews on push.
    - Every later run has a request before it, and pushes with no request got no run: Greptile waits to be asked.
    - No later runs to look at: go to step 3.
 3. If you still do not know, push, then wait up to 3 minutes for a Greptile check run on the new head. If one appears, Greptile reviews on push. If none appears, it waits to be asked.
