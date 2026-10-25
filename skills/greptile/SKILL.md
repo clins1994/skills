@@ -23,7 +23,7 @@ Run on its own:
 ## Who Greptile is
 
 - REST author: `greptile-apps[bot]` (a staging install uses `greptile-apps-staging[bot]`).
-- GraphQL author (`author.login` in review threads): `greptile-apps`.
+- GraphQL author (`author.login` in review threads): `greptile-apps`, or `greptile-apps-staging` for a staging install.
 - Check run: a name that matches `greptile` (case-insensitive).
 
 ## Where the score is
@@ -57,7 +57,7 @@ query($owner:String!, $repo:String!, $number:Int!, $cursor:String) {
 }' -F owner=<owner> -F repo=<repo> -F number=<n>
 ```
 
-Keep threads where the first comment's author is `greptile-apps` and `isResolved` is false. While `hasNextPage` is true, run again with `-F cursor=<endCursor>`. `databaseId` is the id that `clins:github` needs to reply in the thread.
+Keep threads where the first comment's author is `greptile-apps` or `greptile-apps-staging`, and `isResolved` is false. While `hasNextPage` is true, run again with `-F cursor=<endCursor>`. `databaseId` is the id that `clins:github` needs to reply in the thread.
 
 Resolve threads in one call:
 
