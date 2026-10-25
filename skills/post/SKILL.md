@@ -140,6 +140,20 @@ Block titles: 🇬🇧 More details, 🇯🇵 詳細, 🇨🇳 详细信息, �
   - **Write only what you know.** Leave out ` (<effort>)` when you would have to guess, and ` on <model> (<effort>)` when you do not know the model. The effort level often is not visible to you.
   - `<skill>` is the skill that sent you here (for example `create-pr`, `github` or `linear`), and `post` when the user ran this skill directly.
   - Keep the footer in this form, in english, so the check can find it.
+- **Behind the prompt** (optional): a collapsed block directly under the footer line that tells how the work came about. A caller says when to add it, and the user can always ask to leave it out.
+
+  ```
+  ▸ 💬 Behind the prompt   (collapsed)
+
+    > This is still a work in progress. The idea is to summarize the session or sessions that helped bring this work to life.
+
+    <a few sentences>
+  ```
+
+  - Keep the title and the note exactly as above, so the check can find them.
+  - Read the prompts of the session, or sessions, that made the work. Then tell in a few natural sentences how it came about: what started it, how the idea changed along the way, and what it ended up as. Write it like a short story told to a colleague, in the lead language, not as a form or a log.
+  - It is a summary. Quote the user word for word only when they ask. Leave out secrets, private names, internal links, and anything the user did not want shared. In a public repo, it is public.
+  - Name no pull request or issue (`#123`, `owner/repo#123`, or its URL). GitHub adds a "mentioned" event to each one. Say it in words, for example "the read-time change".
 - **Short post:** when the details add nothing ("Fixed in abc1234. Please review again."), post only the leads. No divider, no block, no footer.
 - Anything a bot adds below the footer (for example a review summary) is not yours. Never edit it.
 
@@ -184,6 +198,7 @@ Add `--skill <name>` to require that skill in the footer. Add `--template` when 
 - the divider, the block titles and their order, that blocks are collapsed and closed, and that no `<summary>` holds a heading
 - the read time after each block title, counted from that block's text
 - the footer: its form, last after the details blocks, the divider directly above it, and a `clins:<skill>` name that matches its link
+- the Behind the prompt block, if there is one: directly under the footer, its note, and no pull request or issue named
 - english style on english text: em-dash, semicolon, curly quote, contraction, weak modal
 - sentence length in every language: 30 words, or 80 characters for languages written without spaces (japanese, chinese, thai). A link counts its text, not its URL.
 - no space between full-width and half-width text, for languages whose style guide asks for it (japanese)

@@ -11,7 +11,7 @@ A reviewer opens the pull request and sees, in this order:
 
 1. The lead (one per language), from [`clins:post`](../post/SKILL.md).
 2. **The images.** Before and after, side by side, with a one-line caption. Only when the change is visible.
-3. `---`, the collapsed details block(s) and the footer, from `clins:post`. The footer names `clins:create-pr`.
+3. `---`, the collapsed details block(s) and the footer, from `clins:post`. The footer names `clins:create-pr`. Under it, when it is worth telling, the collapsed **Behind the prompt** block.
 4. Whatever a review bot appends later. Nobody edits it.
 
 This skill owns the **workflow**: what goes in, and in what order. `clins:post` owns the text. The host skill owns the commands: [`clins:github`](../github/SKILL.md) for GitHub. For another host (GitLab, Gitea, ...), use its CLI with the same steps.
@@ -33,9 +33,10 @@ This skill owns the **workflow**: what goes in, and in what order. `clins:post` 
 5. **Images:** if the change is visible, follow [`references/images.md`](references/images.md).
 6. **Title:** imperative, under about 70 characters, no period. Match the style the repo already uses (`git log --oneline`, recent merged titles), for example `fix(auth): show an error on a wrong password`. Add the issue ID if the repo's titles carry one. If the repo squash-merges, write the title as the commit you want in history.
 7. **Body:** write it with `clins:post`, with `create-pr` as the footer's skill (`check_post.py --skill create-pr`). Headings inside the details, unless the repo's template has its own: Summary, Why, Changes, How it was tested, Not tested (and why), Screenshots (UI only), Related. Translate them for each other language, for example in japanese: 概要, なぜ, 変更点, 確かめたこと, 確かめていないこと・理由, スクショ, 関連. The languages come from `clins:post`: the user's default, and any change they asked for. Link issues the way the host closes them (`closes #123`). In Screenshots, do not repeat the images: say they are at the top, and how you made them.
-8. **Route:** skip this step unless the [`clins:fork-review`](../fork-review/SKILL.md) skill is installed (it is in your list of skills). If it is, and the target repo isn't the user's, read its setting. If it says `fork`, or says `ask` and the user picks the fork, hand off to `clins:fork-review` with the title and body from steps 6–7. It posts the PR on the fork first and comes back to step 10 for each PR. Otherwise go on.
-9. **Post:** push the branch, then create or update the pull request with the host skill. Use draft when checks are still running or more work is coming, and tell the user when to mark it ready.
-10. **Verify:** open the result and check the title, base, head, and that every image renders (the host skill has the check).
+8. **Behind the prompt:** add the block from `clins:post` when the way the work came about helps a reviewer: the idea changed during the session, or the PR is the result of a longer back-and-forth. Skip it for a routine change, and whenever the user asks to leave it out.
+9. **Route:** skip this step unless the [`clins:fork-review`](../fork-review/SKILL.md) skill is installed (it is in your list of skills). If it is, and the target repo isn't the user's, read its setting. If it says `fork`, or says `ask` and the user picks the fork, hand off to `clins:fork-review` with the title and body from steps 6–8. It posts the PR on the fork first and comes back to step 11 for each PR. Otherwise go on.
+10. **Post:** push the branch, then create or update the pull request with the host skill. Use draft when checks are still running or more work is coming, and tell the user when to mark it ready.
+11. **Verify:** open the result and check the title, base, head, and that every image renders (the host skill has the check).
 
 ## Updating a pull request
 

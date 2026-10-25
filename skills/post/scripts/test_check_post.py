@@ -7,7 +7,7 @@ import sys
 import tempfile
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from check_post import EN_TITLE, FOOTER, check, detect, fix, footer, read_minutes, summary_lines  # noqa: E402
+from check_post import BEHIND_NOTE, BEHIND_TITLE, EN_TITLE, FOOTER, check, detect, fix, footer, read_minutes, summary_lines  # noqa: E402
 
 GH_EN = f"""Adds retry to the upload step. Please review the backoff values.
 
@@ -135,6 +135,11 @@ The redirect drops the query string.
 {FOOTER}
 """
 
+BEHIND = (f"\n<details><summary>{BEHIND_TITLE}</summary>\n\n{BEHIND_NOTE}\n\n"
+          "- Asked for a retry on the upload step.\n- One session wrote the code and the tests.\n\n</details>")
+LINEAR_BEHIND = (f"\n>>> {BEHIND_TITLE}\n\n{BEHIND_NOTE}\n\n- Asked for a fix to the redirect.\n\n>>>")
+GH_BEHIND = GH_EN.rstrip("\n") + "\n" + BEHIND + "\n"
+
 CASES = [
     ("English GitHub post passes", GH_EN, dict(platform="github"), []),
     ("English Linear post passes", LINEAR_EN, dict(platform="linear"), []),
@@ -200,6 +205,24 @@ CASES = [
      ["divider (---) above the footer"]),
     ("footer must link Claude Code", GH_EN.replace("[Claude Code](https://claude.com/claude-code)", "Claude Code"),
      {}, ["footer is missing or changed"]),
+    ("behind the prompt passes", GH_BEHIND, dict(platform="github"), []),
+    ("behind the prompt on Linear passes", LINEAR_EN.rstrip("\n") + "\n" + LINEAR_BEHIND + "\n", dict(platform="linear"), []),
+    ("behind the prompt is not a details block", GH_BEHIND, dict(langs=["en"]), []),
+    ("behind the prompt needs its note", GH_BEHIND.replace(BEHIND_NOTE + "\n\n", ""), {}, ["starts with this note"]),
+    ("behind the prompt names no pull request", GH_BEHIND.replace("the tests.", "the tests in #18."), {}, ["names #18"]),
+    ("behind the prompt names no other repo's issue", GH_BEHIND.replace("the tests.", "the tests for beeper/line#284."),
+     {}, ["names beeper/line#284"]),
+    ("behind the prompt names no pull request URL", GH_BEHIND.replace(
+        "the tests.", "the tests in https://github.com/o/r/pull/7."), {}, ["names https://github.com/o/r/pull/7"]),
+    ("behind the prompt may show a number in code", GH_BEHIND.replace("the tests.", "the tests, with `#18` in a log."), {}, []),
+    ("behind the prompt gets the english style rules", GH_BEHIND.replace("wrote the code", "wrote the code — fast"),
+     {}, ["em-dash"]),
+    ("behind the prompt above the footer fails", GH_EN.replace("---\n\n" + FOOTER, BEHIND.strip() + "\n\n---\n\n" + FOOTER),
+     {}, ["directly under the footer"]),
+    ("behind the prompt after other text fails", GH_EN.rstrip("\n") + "\n\nmore text\n" + BEHIND + "\n", {},
+     ["directly under the footer"]),
+    ("text below behind the prompt is not checked", GH_BEHIND + "\n<details><summary>Greptile Summary</summary>\n\nbot—text\n</details>\n",
+     {}, []),
     ("text below the footer is not checked", GH_EN + "\n<details><summary>Greptile Summary</summary>\n\nbot—text\n</details>\n",
      {}, []),
     ("create-pr footer passes", GH_EN.replace(FOOTER, footer("create-pr")), dict(skill="create-pr"), []),
@@ -338,6 +361,11 @@ for name, ok in [
         "🪴 Generated with [Claude Code](https://claude.com/claude-code) on Opus 5.5 (Medium) using [clins:create-pr]")),
     ("a footer with a model and an effort passes the check",
      check(GH_EN.replace(FOOTER, footer("post", "Opus 5.5", "Medium")), "github") == []),
+    ("behind the prompt does not change, and its bot section stays", fix(GH_BEHIND + BOT) == GH_BEHIND + BOT),
+    ("an old post gets fixed above behind the prompt", fix(old(GH_EN).rstrip("\n").replace(OLD, FOOTER) + "\n" + BEHIND + "\n")
+     == GH_BEHIND),
+    ("--read-time leaves out behind the prompt", list(summary_lines(GH_BEHIND)) == ["🇬🇧 More details · 1 min read"]),
+    ("the CLI does not check a bot block below behind the prompt", "0 error(s)" in cli(GH_BEHIND + BOT, "--platform", "github")),
     ("a footer with no text above it is left alone", fix(FOOTER + "\n") == FOOTER + "\n"),
     ("a custom title gets its read time", fix(GH_EN.replace(EN_TITLE, "🇽🇽 Custom").replace(" · 1 min read", ""),
                                              {"xx": "🇽🇽 Custom"}, {"xx": "{n} xx"}).count("🇽🇽 Custom</b> · 1 xx") == 1),

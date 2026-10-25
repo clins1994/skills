@@ -63,6 +63,12 @@ SKILL_LINK = (r"\[clins:(?P<a>[a-z0-9-]+)\]\((?P<w2><)?https://github\.com/clins
               r"(?P<b>[a-z0-9-]+)/SKILL\.md(?(w2)>)\)")
 FOOTER_LINE = re.compile(rf"^🪴 Generated with {CC_LINK}(?: on (?P<model>[^()\[\n]+?)(?: \((?P<effort>[^()\n]+)\))?)? "
                          rf"using {SKILL_LINK}$", re.M)
+# An optional block right under the footer line: a summary of the session or sessions behind the work.
+BEHIND_TITLE = "💬 Behind the prompt"
+BEHIND_NOTE = ("> This is still a work in progress. The idea is to summarize the session or sessions "
+               "that helped bring this work to life.")
+# A pull request or issue that the block names. GitHub adds a "mentioned" event to each one.
+REFERENCE = re.compile(r"(?<![\w/`])(?:[\w.-]+/[\w.-]+)?#\d+\b|https://github\.com/[^/\s]+/[^/\s]+/(?:pull|issues)/\d+")
 # The footer from before 0.9.0: the same line with 🤖 and no model.
 OLD_FOOTER = re.compile(rf"^🤖 Generated with {CC_LINK} using {SKILL_LINK}$", re.M)
 CJK = "぀-ヿ㐀-鿿！-｠"
@@ -153,9 +159,23 @@ def find_old_footer(text: str):
     return next(iter(matches((OLD_FOOTER,), text)), None)
 
 
+def title_of(m) -> str:
+    return re.sub(r"<[^>]+>", "", m["t"]).strip()
+
+
+def find_behind(text: str):
+    """The Behind the prompt block right under the footer line (only blank lines between), or None."""
+    foot = find_footer(text)
+    if not foot:
+        return None
+    return next((m for m in matches((GITHUB, LINEAR), text)
+                 if title_of(m) == BEHIND_TITLE and m.start() >= foot.end() and not text[foot.end(): m.start()].strip()), None)
+
+
 def footer_end(text: str) -> int | None:
-    """Where our text ends: after the footer line, new or old."""
-    m = find_footer(text) or find_old_footer(text)
+    """Where our text ends: after the footer line, new or old, and its Behind the prompt block."""
+    behind = find_behind(text)
+    m = behind or find_footer(text) or find_old_footer(text)
     return m.end() if m else None
 
 
@@ -169,7 +189,9 @@ def summary_lines(text: str, titles: dict[str, str] | None = None, reads: dict[s
         if title and read:
             phrase[title] = read
     for m in matches((GITHUB, LINEAR), text):
-        title = re.sub(r"<[^>]+>", "", m["t"]).strip().partition(READ_SEP)[0]
+        title = title_of(m).partition(READ_SEP)[0]
+        if title == BEHIND_TITLE:
+            continue
         yield f"{title}{READ_SEP}{phrase.get(title, '{n} min').format(n=read_minutes(m['b']))}"
 
 
@@ -286,8 +308,8 @@ def parse(text: str, template: bool = False):
     so both read the same leads.
 
     blocks: (position, title, read time, body). The summary line is "<title> · <read time>"."""
-    blocks = [(m.start(), *re.sub(r"<[^>]+>", "", m["t"]).strip().partition(READ_SEP)[::2], m["b"])
-              for m in matches((GITHUB, LINEAR), text)]
+    blocks = [(m.start(), *title_of(m).partition(READ_SEP)[::2], m["b"])
+              for m in matches((GITHUB, LINEAR), text) if title_of(m) != BEHIND_TITLE]  # It belongs to the footer.
     head = text[: blocks[0][0]] if blocks else text
     lines = head.strip().split("\n")
     lines = lines[1:] if lines and lines[0].startswith("@") else lines
@@ -349,9 +371,13 @@ def check(text: str, platform: str | None, langs: list[str] | None = None, sourc
     # A block that belongs above the footer sits below it. A bot section below the footer can reuse a title.
     above = {b[1] for b in parse(text)[0] if foot and b[0] < foot.start()}
     misplaced = foot and any(b[0] > foot.start() and b[1] in want_titles and b[1] not in above for b in parse(text)[0])
+    behind = find_behind(text)
+    # A Behind the prompt block anywhere else: above the footer, or below it after other text.
+    stray = any(title_of(m) == BEHIND_TITLE and (not behind or m.start() != behind.start())
+                for m in matches((GITHUB, LINEAR), text))
     end = footer_end(text)
     text = text if end is None else text[:end] + "\n"  # Bot sections below the footer are not ours.
-    foot = find_footer(text)
+    foot, behind = find_footer(text), find_behind(text)
     if misplaced:
         return ["The footer must come after the details blocks."]
     old = find_old_footer(text)
@@ -419,6 +445,17 @@ def check(text: str, platform: str | None, langs: list[str] | None = None, sourc
                 err.append(f"The footer names clins:{foot['a']} but links to skills/{foot['b']}.")
             elif skill and foot["a"] != skill:
                 err.append(f"The footer names clins:{foot['a']}. This post comes from clins:{skill}.")
+        if stray:
+            err.append(f"The {BEHIND_TITLE} block goes directly under the footer line.")
+        if behind:
+            first = next((l.strip() for l in behind["b"].split("\n") if l.strip()), "")
+            if first != BEHIND_NOTE:
+                err.append(f"The {BEHIND_TITLE} block starts with this note: {BEHIND_NOTE}")
+            refs = REFERENCE.findall(no_code(behind["b"]))
+            if refs:
+                err.append(f"The {BEHIND_TITLE} block names {', '.join(refs)}. Say it in words: GitHub adds a "
+                           "\"mentioned\" event to every pull request or issue a post names.")
+            err += style(langs[0], prose(behind["b"]))
     elif "---" in (l.strip() for l in lines) or foot or old:
         err.append("A short post (no block) has no divider and no footer.")
 
