@@ -28,7 +28,7 @@ import sys
 # Language code: (block title, "original" label, read time). {n} is the minutes.
 KNOWN = {
     "en": ("🇬🇧 More details", "Original", "{n} min read"),
-    "ja": ("🇯🇵 詳細", "原文", "{n}分で読めます"),
+    "ja": ("🇯🇵 詳細", "原文", "読了目安{n}分"),
     "zh": ("🇨🇳 详细信息", "原文", "阅读约{n}分钟"),
     "zh-CN": ("🇨🇳 详细信息", "原文", "阅读约{n}分钟"),
     "zh-TW": ("🇹🇼 詳細資訊", "原文", "閱讀約{n}分鐘"),

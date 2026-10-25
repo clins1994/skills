@@ -21,7 +21,7 @@ GH_EN = f"""Adds retry to the upload step. Please review the backoff values.
 {FOOTER}
 """
 
-JA_BLOCK = """<details><summary><b>🇯🇵 詳細</b> · 1分で読めます</summary>
+JA_BLOCK = """<details><summary><b>🇯🇵 詳細</b> · 読了目安1分</summary>
 
 ## 概要
 
@@ -146,14 +146,14 @@ CASES = [
      {}, ["over 30 words (en)"]),
     ("long portuguese sentence fails", GH_PT_JA.replace("- Tenta três vezes.", "- Tenta " + "muitas " * 30 + "vezes."),
      dict(langs=["pt", "ja"]), ["over 30 words (pt)"]),
-    ("long chinese sentence fails", GH_EN_JA.replace("🇯🇵 詳細</b> · 1分で読めます", "🇨🇳 详细信息</b> · 阅读约1分钟").replace("3回まで再試行する。", "重试" * 45 + "。"),
+    ("long chinese sentence fails", GH_EN_JA.replace("🇯🇵 詳細</b> · 読了目安1分", "🇨🇳 详细信息</b> · 阅读约1分钟").replace("3回まで再試行する。", "重试" * 45 + "。"),
      dict(langs=["en", "zh"]), ["over 80 characters (zh)"]),
-    ("chinese may space latin text", GH_EN_JA.replace("🇯🇵 詳細</b> · 1分で読めます", "🇨🇳 详细信息</b> · 阅读约1分钟").replace("3回まで再試行する。", "最多重试 3 次。"),
+    ("chinese may space latin text", GH_EN_JA.replace("🇯🇵 詳細</b> · 読了目安1分", "🇨🇳 详细信息</b> · 阅读约1分钟").replace("3回まで再試行する。", "最多重试 3 次。"),
      dict(langs=["en", "zh"]), []),
-    ("hindi sentences end at the danda", GH_EN_JA.replace("🇯🇵 詳細</b> · 1分で読めます", "🇮🇳 अधिक विवरण</b> · 1 मिनट में पढ़ें").replace(
+    ("hindi sentences end at the danda", GH_EN_JA.replace("🇯🇵 詳細</b> · 読了目安1分", "🇮🇳 अधिक विवरण</b> · 1 मिनट में पढ़ें").replace(
         "3回まで再試行する。", " ".join(["यह छोटा वाक्य है।"] * 12)),
      dict(langs=["en", "hi"]), []),
-    ("long hindi sentence fails", GH_EN_JA.replace("🇯🇵 詳細</b> · 1分で読めます", "🇮🇳 अधिक विवरण</b> · 1 मिनट में पढ़ें").replace(
+    ("long hindi sentence fails", GH_EN_JA.replace("🇯🇵 詳細</b> · 読了目安1分", "🇮🇳 अधिक विवरण</b> · 1 मिनट में पढ़ें").replace(
         "3回まで再試行する。", "यह " * 32 + "वाक्य है।"),
      dict(langs=["en", "hi"]), ["over 30 words (hi)"]),
     ("short post with footer fails", "Fixed.\n\n" + FOOTER, {}, ["short post"]),
