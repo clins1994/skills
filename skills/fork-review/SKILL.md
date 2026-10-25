@@ -36,6 +36,12 @@ clins:fork-review <owner>/<repo>: mode fork; review /clins:address-reviews, then
 - `fork <owner>/<name>` (optional) names your fork, when the agent can't find it.
 - A line with `<owner>/<repo>` applies to that upstream repo only. Use it in the global file for repos you work on in many worktrees, where a `CLAUDE.local.md` would not follow you.
 
+**Repos that already review upstream.** Some upstream repos run a review bot on every PR, so a fork review adds nothing. For example, `raycast/extensions` runs Greptile, and [`clins:raycast-publish`](../raycast-publish/SKILL.md) reviews there on the draft. Give such a repo its own line, which beats a plain `mode fork` line and keeps the hook quiet:
+
+```
+clins:fork-review raycast/extensions: mode origin
+```
+
 Look in this order. Each part (`mode`, `review`, `fork`) comes from the first place that has it:
 
 1. What the user says for this PR ("straight to upstream this time", "also wait for @bob").
