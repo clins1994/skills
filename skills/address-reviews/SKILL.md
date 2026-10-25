@@ -88,7 +88,7 @@ Before you push, record what each bot's skill needs to tell its next review from
 
 ### 6. Reply and resolve
 
-Reply in every thread you triaged, in the thread (see `clins:github`, "Reply in a review thread"). Write the reply with `clins:post`: a short post, usually only the lead, in the PR's language.
+Reply in every thread you triaged, in the thread (see `clins:github`, "Reply in a review thread"). Write the reply with `clins:post`: a short post, usually only the lead. Use the user's saved post languages. If none are saved, do not ask `post`'s first-run question in the background: use the language that the PR body leads with, and say so in the report.
 
 - **Fix**: what you changed and the commit: "Fixed in abc1234: `parse()` now returns early on an empty body."
 - **Won't fix**: the reason in one sentence, with the file or line that shows it.
