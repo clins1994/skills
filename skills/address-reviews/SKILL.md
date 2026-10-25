@@ -58,7 +58,7 @@ Checks that are still running do not block the round. Step 8 waits for them befo
 For each reviewer, get the open feedback **on the current head**:
 
 - Bots with a skill: the skill's "Open comments" and score.
-- Bots without a skill and people: open review threads by that author (`reviewThreads`, as in `clins:greptile`), plus their PR comments since the last push.
+- Bots without a skill and people: open review threads by that author (`reviewThreads`, as in `clins:greptile`), plus their PR comments that have no answer yet. In the first round, read all of them, also the ones from before the last push. In later rounds, skip the ones that you already handled in this run.
 
 Give each item an identity: `path + author + the first 8 words of the comment`, lowercased. You need it for the report and to see a comment come back.
 
@@ -113,7 +113,7 @@ Stop when all of these hold:
 - No CI failure on the current head that you can fix.
 - Every bot with a skill is done (its skill says when).
 - No bot thread is open, except parked ones.
-- Every thread from a person has a reply.
+- Every thread and PR comment from a person has a reply.
 
 Otherwise start the next round. Also stop:
 
