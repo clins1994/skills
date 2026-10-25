@@ -22,7 +22,7 @@ The text of every reply comes from [`clins:post`](../post/SKILL.md). The GitHub 
 - Never merge, approve or close the PR. Never mark it ready for review.
 - Never use `--no-verify`, force-push, `git reset --hard`, `git checkout .`, `git clean -f`, or amend a commit. If a hook fails, fix the cause and make a new commit.
 - Stage files by name. Never `git add -A` or `git add .`.
-- Stay on the PR's head branch.
+- Stay on the PR's head branch, or in the working folder that a push override names (see "Push override").
 - Never resolve a thread that a person started. Reply, and let them resolve it.
 - Never read a review for an older commit as the current one. If a bot's review does not come, stop and report.
 - The repo's `AGENTS.md`, `CLAUDE.md` and CI notes win over this file.
@@ -35,7 +35,7 @@ A round can wait up to 10 minutes for a bot, so a full run can take an hour. Run
 
 1. **The PR.** Use the number or URL the user gave. Else: `gh pr list --head "$(git branch --show-current)" --json number,url`. One PR per run. If there is none, say so and stop.
 2. Take `<owner>/<repo>` from the PR URL, and pass `-R <owner>/<repo>` to every `gh` call. The PR can live on a fork ([`clins:fork-review`](../fork-review/SKILL.md)), and `gh` without `-R` finds the PR through `origin`, which is often the wrong repo. Then read `gh pr view <n> -R <owner>/<repo> --json headRefName,headRefOid,baseRefName,isCrossRepository`. If the head branch is in a fork you cannot push to, say so and stop.
-3. Check out the head branch and pull it (fast-forward only). If the working tree has changes that are not yours, stop and ask.
+3. Check out the head branch and pull it (fast-forward only). If the working tree has changes that are not yours, stop and ask. With a push override, work in its folder instead, and skip the checkout.
 4. Read `AGENTS.md`, `CLAUDE.md` and `CONTRIBUTING.md`: CI notes, the formatter and lint commands, commit message style, and any review-bot config.
 5. **Find the reviewers.** List who has reviewed or commented: `gh pr view <n> --json reviews,comments,latestReviews`, and the check runs on the head. Sort each author into:
    - a **bot with a skill** (for example `greptile-apps[bot]` → `clins:greptile`),
@@ -85,7 +85,16 @@ A bot comment that comes back after a round where you marked it **won't fix** me
 
 Small commits, one per comment or per group of comments about the same thing. The message says what changed and which comment it answers, in the repo's commit style, with your co-author footer.
 
-Before you push, record what each bot's skill needs to tell its next review from the last one (for Greptile: "Waiting for a review" in `clins:greptile`). Do it in a round with no commit too, before you ask for a review in step 7. Then push without force.
+Before you push, record what each bot's skill needs to tell its next review from the last one (for Greptile: "Waiting for a review" in `clins:greptile`). Do it in a round with no commit too, before you ask for a review in step 7. Then push without force, or run the push override's command.
+
+### Push override
+
+Some PRs are not pushed with `git push`. For example, a Raycast extension lives in its own repo, and its PR branch on `raycast/extensions` is written only by Raycast's publish command ([`clins:raycast-publish`](../raycast-publish/SKILL.md)). The caller then passes:
+
+- a **working folder**: where to edit and commit, instead of a checkout of the head branch,
+- a **push command**: what to run from that folder after each commit, instead of `git push`.
+
+Read reviews, CI and threads from the PR as usual, with `-R <owner>/<repo>`. Commit in the working folder with the rules above. Run the push command, then read the PR's new `headRefOid`: that is the commit the next review is for. If the command fails, stop and report its output. Never push to the PR branch with `git` when an override is set.
 
 ### 6. Reply and resolve
 
