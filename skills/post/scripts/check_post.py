@@ -6,6 +6,8 @@
     python3 check_post.py --platform linear --langs ja,en --source en post.md
     python3 check_post.py --langs pt --title "pt=🇧🇷 Mais detalhes" post.md
     python3 check_post.py --read-time post.md   # print each block's read time and stop
+    python3 check_post.py --langs auto post.md  # read the languages from the block titles (for old posts)
+    python3 check_post.py --fix post.md > new.md   # bring an older post's format up to date
     gh pr view 12 --json body -q .body | python3 check_post.py -
 
 Every language gets a sentence-length check. English text also gets the english style
@@ -47,15 +49,28 @@ KNOWN = {
 EN_TITLE = KNOWN["en"][0]
 
 
-def footer(skill: str = "post") -> str:
-    return ("🤖 Generated with [Claude Code](https://claude.com/claude-code) using "
+def footer(skill: str = "post", model: str | None = None, effort: str | None = None) -> str:
+    """The footer line. The model and its effort level go in when the agent knows them."""
+    on = f" on {model}{f' ({effort})' if effort else ''}" if model else ""
+    return (f"🪴 Generated with [Claude Code](https://claude.com/claude-code){on} using "
             f"[clins:{skill}](https://github.com/clins1994/skills/blob/main/skills/{skill}/SKILL.md)")
 
 
 FOOTER = footer()
-FOOTER_LINE = re.compile(r"^🤖 Generated with \[Claude Code\]\(https://claude\.com/claude-code\) using "
-                         r"\[clins:([a-z0-9-]+)\]\(https://github\.com/clins1994/skills/blob/main/skills/([a-z0-9-]+)/SKILL\.md\)$",
-                         re.M)
+# The footer line. Linear saves links as [text](<url>), so a URL can be wrapped.
+CC_LINK = r"\[Claude Code\]\((?P<w1><)?https://claude\.com/claude-code(?(w1)>)\)"
+SKILL_LINK = (r"\[clins:(?P<a>[a-z0-9-]+)\]\((?P<w2><)?https://github\.com/clins1994/skills/blob/main/skills/"
+              r"(?P<b>[a-z0-9-]+)/SKILL\.md(?(w2)>)\)")
+FOOTER_LINE = re.compile(rf"^🪴 Generated with {CC_LINK}(?: on (?P<model>[^()\[\n]+?)(?: \((?P<effort>[^()\n]+)\))?)? "
+                         rf"using {SKILL_LINK}$", re.M)
+# An optional block right under the footer line: a summary of the session or sessions behind the work.
+BEHIND_TITLE = "💬 Behind the prompt"
+BEHIND_NOTE = ("> ℹ️ This is still a work in progress. The idea is to summarize the session or sessions "
+               "that helped bring this work to life.")
+# A pull request or issue that the block names. GitHub adds a "mentioned" event to each one.
+REFERENCE = re.compile(r"(?<![\w/`])(?:[\w.-]+/[\w.-]+)?#\d+\b|https://github\.com/[^/\s]+/[^/\s]+/(?:pull|issues)/\d+")
+# The footer from before 0.9.0: the same line with 🤖 and no model.
+OLD_FOOTER = re.compile(rf"^🤖 Generated with {CC_LINK} using {SKILL_LINK}$", re.M)
 CJK = "぀-ヿ㐀-鿿！-｠"
 # Sentence ends: latin punctuation before a space, and full stops that need no space
 # (CJK 。！？ and the devanagari danda । used in hindi).
@@ -76,6 +91,9 @@ CPM = 500
 WIDE = "぀-ヿ㐀-鿿가-힯฀-๿"
 READ_SEP = " · "
 
+# A divider goes directly above the footer: a --- line with a blank line above and below it.
+DIVIDER_ABOVE = re.compile(r"\n[ \t]*\n---[ \t]*\n[ \t]*\n$")
+FENCE = re.compile(r"^[ \t]*```.*?^[ \t]*```[^\n]*$", re.S | re.M)
 GITHUB = re.compile(r"<details[^>]*>\s*<summary>(?P<t>.*?)</summary>\n\n(?P<b>.*?)\n</details>", re.S)
 LINEAR = re.compile(r"^>>> (?P<t>[^\n]+)\n(?P<b>.*?)\n>>>$", re.S | re.M)
 EN_STYLE = [
@@ -123,6 +141,44 @@ def read_minutes(body: str) -> int:
     return max(1, -(-(chars * WPM + len(words) * CPM) // (WPM * CPM)))
 
 
+def matches(rxs, text: str) -> list:
+    """The matches of the patterns, in text order, without the ones that start in fenced code:
+    a post can quote a block or a footer as an example."""
+    code = [m.span() for m in FENCE.finditer(text)]
+    return sorted((m for rx in rxs for m in rx.finditer(text) if not any(a <= m.start() < b for a, b in code)),
+                  key=lambda m: m.start())
+
+
+def find_footer(text: str):
+    """The footer line, or None."""
+    return next(iter(matches((FOOTER_LINE,), text)), None)
+
+
+def find_old_footer(text: str):
+    """The footer line from before 0.9.0, or None."""
+    return next(iter(matches((OLD_FOOTER,), text)), None)
+
+
+def title_of(m) -> str:
+    return re.sub(r"<[^>]+>", "", m["t"]).strip()
+
+
+def find_behind(text: str):
+    """The Behind the prompt block right under the footer line (only blank lines between), or None."""
+    foot = find_footer(text)
+    if not foot:
+        return None
+    return next((m for m in matches((GITHUB, LINEAR), text)
+                 if title_of(m) == BEHIND_TITLE and m.start() >= foot.end() and not text[foot.end(): m.start()].strip()), None)
+
+
+def footer_end(text: str) -> int | None:
+    """Where our text ends: after the footer line, new or old, and its Behind the prompt block."""
+    behind = find_behind(text)
+    m = behind or find_footer(text) or find_old_footer(text)
+    return m.end() if m else None
+
+
 def summary_lines(text: str, titles: dict[str, str] | None = None, reads: dict[str, str] | None = None):
     """Each block's summary line, "<title> · <read time>", as check() wants it."""
     titles, reads = titles or {}, reads or {}
@@ -132,10 +188,95 @@ def summary_lines(text: str, titles: dict[str, str] | None = None, reads: dict[s
         read = reads.get(code) or KNOWN.get(code, (None,) * 3)[2]
         if title and read:
             phrase[title] = read
-    for rx in (GITHUB, LINEAR):
-        for m in rx.finditer(text):
-            title = re.sub(r"<[^>]+>", "", m["t"]).strip().partition(READ_SEP)[0]
-            yield f"{title}{READ_SEP}{phrase.get(title, '{n} min').format(n=read_minutes(m['b']))}"
+    for m in matches((GITHUB, LINEAR), text):
+        title = title_of(m).partition(READ_SEP)[0]
+        if title == BEHIND_TITLE:
+            continue
+        yield f"{title}{READ_SEP}{phrase.get(title, '{n} min').format(n=read_minutes(m['b']))}"
+
+
+# --fix: the format changes the script can make by itself, so an older post can catch up
+# without anyone rewriting its words. Each fix changes markup only, runs only on a post that
+# has its old format, and does nothing the second time. Delete a fix once no open post needs it.
+
+def fix_read_time(top: str, phrases: dict[str, str]) -> str:
+    """0.7.0: each block title ends with its read time."""
+    out, pos = [], 0
+    for m in matches((GITHUB, LINEAR), top):
+        raw = m["t"]
+        full = re.sub(r"<[^>]+>", "", raw).strip()
+        title, _, read = full.partition(READ_SEP)
+        if title not in phrases:
+            continue
+        want = phrases[title].format(n=read_minutes(m["b"]))
+        if read.strip() == want:
+            continue
+        if not read:
+            new = raw.rstrip() + READ_SEP + want
+        else:  # Replace the read time's text and keep the tags around it, as in <b>… · 7 min read</b>.
+            if READ_SEP not in raw:
+                continue
+            i = raw.rindex(READ_SEP) + len(READ_SEP)
+            parts = re.split(r"(<[^>]+>)", raw[i:])
+            texts = [k for k in range(0, len(parts), 2) if parts[k].strip()]
+            if len(texts) != 1:
+                continue  # Markup this fix does not know: leave the title for a person.
+            parts[texts[0]] = parts[texts[0]].replace(parts[texts[0]].strip(), want)
+            new = raw[:i] + "".join(parts)
+        out.append(top[pos: m.start("t")] + new)
+        pos = m.end("t")
+    return "".join(out) + top[pos:] if out else top
+
+
+def fix_footer(top: str) -> str:
+    """0.9.0: the footer starts with 🪴. The model of old work is not known, so it stays out."""
+    old = find_old_footer(top)
+    if not old:
+        return top
+    return top[: old.start()] + "🪴" + old[0][len("🤖"):] + top[old.end():]
+
+
+def fix_divider(top: str) -> str:
+    """0.9.0: a divider goes directly above the footer."""
+    m = find_footer(top) or find_old_footer(top)
+    if not m or DIVIDER_ABOVE.search(top[: m.start()]):
+        return top
+    lines = top[: m.start()].split("\n")
+    k = len(lines)
+    while k and not lines[k - 1].strip():
+        k -= 1
+    if k and lines[k - 1].strip() == "---":  # A divider without its blank lines.
+        k -= 1
+        while k and not lines[k - 1].strip():
+            k -= 1
+    if not k:
+        return top
+    return "\n".join(lines[:k]) + "\n\n---\n\n" + top[m.start():]
+
+
+def fix(text: str, titles: dict[str, str] | None = None, reads: dict[str, str] | None = None) -> str:
+    """The post with every fix applied, above the footer only. Text below it is the bots'."""
+    end = footer_end(text.replace("\r\n", "\n"))
+    if end is not None and "\r\n" in text:  # Find the footer on LF text, then cut the raw text after the same line.
+        start = 0
+        for _ in range(text.replace("\r\n", "\n")[:end].count("\n")):
+            start = text.index("\n", start) + 1
+        stop = text.find("\n", start)
+        end = len(text) if stop == -1 else stop - (text[stop - 1] == "\r")
+    top, rest = (text[:end], text[end:]) if end is not None else (text, "")
+    crlf = "\r\n" in top
+    if crlf:
+        if top.count("\r\n") != top.count("\n") or top.count("\r") != top.count("\r\n"):
+            return text  # Mixed line endings: leave the post for a person.
+        top = top.replace("\r\n", "\n")
+    phrases = {}
+    for code in [*KNOWN, *(titles or {}), *(reads or {})]:
+        t = (titles or {}).get(code) or KNOWN.get(code, (None,) * 3)[0]
+        r = (reads or {}).get(code) or KNOWN.get(code, (None,) * 3)[2]
+        if t and r:
+            phrases[t] = r
+    new = fix_divider(fix_footer(fix_read_time(top, phrases)))
+    return (new.replace("\n", "\r\n") if crlf else new) + rest
 
 
 def base(lang: str) -> str:
@@ -162,6 +303,48 @@ def style(lang: str, lines) -> list[str]:
     return err
 
 
+def parse(text: str, template: bool = False):
+    """The blocks, the lines above them, and the lead paragraphs. check() and detect() share it,
+    so both read the same leads.
+
+    blocks: (position, title, read time, body). The summary line is "<title> · <read time>"."""
+    blocks = [(m.start(), *title_of(m).partition(READ_SEP)[::2], m["b"])
+              for m in matches((GITHUB, LINEAR), text) if title_of(m) != BEHIND_TITLE]  # It belongs to the footer.
+    head = text[: blocks[0][0]] if blocks else text
+    lines = head.strip().split("\n")
+    lines = lines[1:] if lines and lines[0].startswith("@") else lines
+    if template:  # The repo's PR template opens with its own heading, such as "## Description".
+        while lines and (lines[0].startswith("#") or not lines[0].strip()):
+            lines = lines[1:]
+    # Leads: one paragraph per language, in order.
+    paras = re.split(r"\n\s*\n", "\n".join(lines).strip())
+    paras = [p.strip() for p in paras if p.strip() and p.strip() != "---" and not p.startswith(("|", "!["))]
+    return blocks, lines, paras
+
+
+def detect(text: str, template: bool = False, titles: dict[str, str] | None = None,
+           labels: dict[str, str] | None = None) -> tuple[list[str], str, list[str]]:
+    """The post's languages, in block order, its source (the language whose lead carries the
+    lead language's "original" label, or else the lead language), and the block titles that
+    match no language. Pass titles and labels for languages that are not built in."""
+    titles, labels = titles or {}, labels or {}
+    by_title = {**{t: code for code, (t, _, _) in reversed(KNOWN.items())},
+                **{t: code for code, t in titles.items()}}
+    blocks, _, paras = parse(text, template)
+    langs, unknown = [], []
+    for _, title, _, _ in blocks:
+        if title not in by_title:
+            unknown.append(title)
+        elif by_title[title] not in langs:
+            langs.append(by_title[title])
+    langs = langs or ["en"]
+    label = labels.get(langs[0]) or KNOWN.get(langs[0], (None,) * 3)[1]
+    for lang, para in zip(langs[1:], paras[1:len(langs)]):
+        if label and para.startswith(f"{label}:"):
+            return langs, lang, unknown
+    return langs, langs[0], unknown
+
+
 def check(text: str, platform: str | None, langs: list[str] | None = None, source: str | None = None,
           titles: dict[str, str] | None = None, labels: dict[str, str] | None = None,
           skill: str | None = None, template: bool = False, reads: dict[str, str] | None = None):
@@ -184,7 +367,20 @@ def check(text: str, platform: str | None, langs: list[str] | None = None, sourc
         label = labels.get(langs[0]) or KNOWN.get(langs[0], (None,) * 3)[1]
         if not label:
             return [f"No built-in 'original' label for {langs[0]}. Pass --label {langs[0]}=..."]
-    foot = FOOTER_LINE.search(text)
+    foot = find_footer(text) or find_old_footer(text)
+    # A block that belongs above the footer sits below it. A bot section below the footer can reuse a title.
+    above = {b[1] for b in parse(text)[0] if foot and b[0] < foot.start()}
+    misplaced = foot and any(b[0] > foot.start() and b[1] in want_titles and b[1] not in above for b in parse(text)[0])
+    behind = find_behind(text)
+    # A Behind the prompt block anywhere else: above the footer, or below it after other text.
+    stray = any(title_of(m) == BEHIND_TITLE and (not behind or m.start() != behind.start())
+                for m in matches((GITHUB, LINEAR), text))
+    end = footer_end(text)
+    text = text if end is None else text[:end] + "\n"  # Bot sections below the footer are not ours.
+    foot, behind = find_footer(text), find_behind(text)
+    if misplaced:
+        return ["The footer must come after the details blocks."]
+    old = find_old_footer(text)
 
     if "@greptileai" in text:
         err.append("The post contains @greptileai.")
@@ -192,9 +388,9 @@ def check(text: str, platform: str | None, langs: list[str] | None = None, sourc
         err.append("A block is open (<details open>). Every block must be collapsed.")
     if re.search(r"<summary>\s*<h[1-6]", text):
         err.append("A heading in <summary> doubles the gap under the divider. Use <b> instead.")
-    if platform == "github" and LINEAR.search(text):
+    if platform == "github" and matches((LINEAR,), text):
         err.append("Linear block syntax (>>>) in a GitHub post.")
-    if platform == "linear" and GITHUB.search(text):
+    if platform == "linear" and matches((GITHUB,), text):
         err.append("GitHub block syntax (<details>) in a Linear post.")
 
     stripped = re.sub(r"^```.*?^```", "", text, flags=re.S | re.M)
@@ -203,19 +399,7 @@ def check(text: str, platform: str | None, langs: list[str] | None = None, sourc
     if len(re.findall(r"^>>>", stripped, re.M)) != 2 * len(LINEAR.findall(stripped)):
         err.append("A >>> block is not closed.")
 
-    # (position, title, read time, body). The summary line is "<title> · <read time>".
-    blocks = sorted([(m.start(), *re.sub(r"<[^>]+>", "", m["t"]).strip().partition(READ_SEP)[::2], m["b"])
-                     for rx in (GITHUB, LINEAR) for m in rx.finditer(text)])
-    head = text[: blocks[0][0]] if blocks else text
-    lines = head.strip().split("\n")
-    lines = lines[1:] if lines and lines[0].startswith("@") else lines
-    if template:  # The repo's PR template opens with its own heading, such as "## Description".
-        while lines and (lines[0].startswith("#") or not lines[0].strip()):
-            lines = lines[1:]
-
-    # Leads: one paragraph per language, in order.
-    paras = re.split(r"\n\s*\n", "\n".join(lines).strip())
-    paras = [p.strip() for p in paras if p.strip() and p.strip() != "---" and not p.startswith(("|", "!["))]
+    blocks, lines, paras = parse(text, template)
     if not paras or paras[0].startswith("#"):
         err.append("The post must start with a lead sentence, not a heading.")
         return err
@@ -250,13 +434,31 @@ def check(text: str, platform: str | None, langs: list[str] | None = None, sourc
                 if title == t and read.strip() != want:
                     err.append(f"Put the read time after the title: '{t}{READ_SEP}{want}'"
                                f"{f', not {read!r}' if read else ''}.")
-        if not foot:
+        if old and not foot:
+            err.append("The footer is the old one (🤖). Run --fix, or copy it from SKILL.md.")
+        elif not foot:
             err.append("The footer is missing or changed. Copy it from SKILL.md.")
-        elif foot[1] != foot[2]:
-            err.append(f"The footer names clins:{foot[1]} but links to skills/{foot[2]}.")
-        elif skill and foot[1] != skill:
-            err.append(f"The footer names clins:{foot[1]}. This post comes from clins:{skill}.")
-    elif "---" in (l.strip() for l in lines) or foot:
+        else:
+            if not DIVIDER_ABOVE.search(text[: foot.start()]):
+                err.append("Put a divider (---) above the footer, with a blank line above and below it.")
+            if foot["a"] != foot["b"]:
+                err.append(f"The footer names clins:{foot['a']} but links to skills/{foot['b']}.")
+            elif skill and foot["a"] != skill:
+                err.append(f"The footer names clins:{foot['a']}. This post comes from clins:{skill}.")
+        if stray:
+            err.append(f"The {BEHIND_TITLE} block goes directly under the footer line.")
+        if behind:
+            body = [l.strip() for l in behind["b"].split("\n") if l.strip()]
+            if body[:1] == ["<br>"]:  # GitHub sets a quote tight under the block title; a <br> line gives it room.
+                body = body[1:]
+            if body[:1] != [BEHIND_NOTE]:
+                err.append(f"The {BEHIND_TITLE} block starts with this note (on GitHub, after a <br> line): {BEHIND_NOTE}")
+            refs = REFERENCE.findall(no_code(behind["b"]))
+            if refs:
+                err.append(f"The {BEHIND_TITLE} block names {', '.join(refs)}. Say it in words: GitHub adds a "
+                           "\"mentioned\" event to every pull request or issue a post names.")
+            err += style(langs[0], prose(behind["b"]))
+    elif "---" in (l.strip() for l in lines) or foot or old:
         err.append("A short post (no block) has no divider and no footer.")
 
     # Style per language, and every block shaped like the source block.
@@ -287,7 +489,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("path", help="post file, or - for stdin")
     ap.add_argument("--platform", choices=("github", "linear"))
-    ap.add_argument("--langs", default="en", help="language codes in order, lead first, for example en,ja")
+    ap.add_argument("--langs", default="en",
+                    help="language codes in order, lead first, for example en,ja, or auto to read them from the block titles")
     ap.add_argument("--source", help="the language the post was written in (default: the lead)")
     ap.add_argument("--title", action="append", default=[], help="block title for a language, code=title")
     ap.add_argument("--label", action="append", default=[], help="'original' label in a language, code=label")
@@ -296,20 +499,36 @@ def main() -> int:
     ap.add_argument("--skill", help="the skill the footer must name, for example create-pr")
     ap.add_argument("--read-time", action="store_true",
                     help="print each block's title with its read time, for the summary line, and stop")
+    ap.add_argument("--fix", action="store_true",
+                    help="print the post with its format brought up to date (read times, the footer's form and its divider), and stop")
     ap.add_argument("--template", action="store_true",
                     help="the post follows a repo template whose heading comes before the lead")
     a = ap.parse_args()
-    text = sys.stdin.read() if a.path == "-" else open(a.path, encoding="utf-8").read()
-    text = re.sub(r"\]\(<([^>\s]+)>\)", r"](\1)", text.replace("\r\n", "\n"))  # Linear links
-    foot = FOOTER_LINE.search(text)
-    if foot:
-        text = text[: foot.end()] + "\n"  # Bot sections below the footer are not ours.
+    raw = sys.stdin.read() if a.path == "-" else open(a.path, encoding="utf-8", newline="").read()
+    if a.fix:
+        sys.stdout.reconfigure(newline="")
+        sys.stdout.write(fix(raw, pairs(a.title, "--title"), pairs(a.read, "--read")))
+        return 0
+    full = re.sub(r"\]\(<([^>\s]+)>\)", r"](\1)", raw.replace("\r\n", "\n"))  # Linear links
+    end = footer_end(full)
+    text = full if end is None else full[:end] + "\n"  # Bot sections below the footer are not ours.
     if a.read_time:
         for line in summary_lines(text, pairs(a.title, "--title"), pairs(a.read, "--read")):
             print(line)
         return 0
     langs = [l.strip() for l in a.langs.split(",") if l.strip()]
-    errors = check(text, a.platform, langs, a.source, pairs(a.title, "--title"), pairs(a.label, "--label"), a.skill,
+    source = a.source
+    if langs == ["auto"]:
+        langs, found, unknown = detect(text, a.template, pairs(a.title, "--title"), pairs(a.label, "--label"))
+        source = source or found
+        print(f"langs: {','.join(langs)}, source: {source}")
+        for t in unknown:
+            print(f"error: No language has the block title {t!r}. Pass --title code={t}, "
+                  "and --label and --read for that code.")
+        if unknown:
+            return 1
+    # check() gets the full text: it cuts after the footer itself, after it checks that no block comes after it.
+    errors = check(full, a.platform, langs, source, pairs(a.title, "--title"), pairs(a.label, "--label"), a.skill,
                    a.template, pairs(a.read, "--read"))
     for e in errors:
         print(f"error: {e}")

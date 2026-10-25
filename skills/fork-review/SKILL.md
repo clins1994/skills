@@ -70,7 +70,7 @@ With `mode ask`, ask now: "Open this PR on your fork <fork> first, or straight o
 
 ## Workflow
 
-1. **Prepare the PR** with `clins:create-pr` steps 1–7: range, diff, checks, images, title, body. The base is the upstream base branch.
+1. **Prepare the PR** with `clins:create-pr` steps 1–8: range, diff, checks, images, title, body, and Behind the prompt. The base is the upstream base branch.
 2. **Sync the fork's base branch** with upstream:
 
    ```bash

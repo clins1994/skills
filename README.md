@@ -39,6 +39,7 @@ The plugin names each skill `clins:<skill>`, for example `/clins:post`. The skil
 | [raycast-publish](skills/raycast-publish/SKILL.md) | Publishes a Raycast extension through a PR on `raycast/extensions`: syncs your fork, pulls contributions, prepares the extension against Raycast's live guidelines, writes the full description from Raycast's template before publishing, gets Greptile to 5/5 on the draft with `address-reviews`, then marks it ready on your OK. Never merges. |
 | [github](skills/github/SKILL.md) | Posts to GitHub with `gh`: PR bodies with images uploaded by `gh --attach` and a render check, PR comments, replies in review threads, and issues. |
 | [linear](skills/linear/SKILL.md) | Posts to Linear through its MCP server: new issues with fields, safe description updates with `patch`, comments and thread replies. |
+| [migrate-posts](skills/migrate-posts/SKILL.md) | Brings your open PRs, GitHub issues, comments and Linear issues up to date after the skills change. Updates the skills, shows a dry run for every signed-in account, then changes only the format, with a backup per post. A second run does nothing. |
 
 How they fit together:
 

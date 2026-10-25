@@ -24,7 +24,7 @@ Never change code, identifiers, commands, flags, file paths, quoted errors, prod
 2. A bold label is allowed when it names an item and new detail follows (`**Decision 2:** we split only if ...`). A bold label that restates the line is not allowed.
 3. Sentence case in headings.
 4. Straight quotes, not curly quotes.
-5. No decorative emoji. Exception: the flag in each block title and the 🤖 in the footer.
+5. No decorative emoji. Exception: the flag in each block title and the 🪴 in the footer.
 6. No metaphor nouns where a plain word exists: substrate, wedge, vector, surface (as in "API surface"), north star, flywheel, ratchet, endgame.
 7. No mannered prose: aphorisms, personified code ("the plan holds it"), figurative verbs ("rides along").
 8. No over-compression: no arrows or symbols in place of verbs, no dropped articles. Exception: a one-line order of steps, like `A → B → C`.
