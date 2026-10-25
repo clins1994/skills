@@ -31,7 +31,7 @@ The plugin names each skill `clins:<skill>`, for example `/clins:post`. The skil
 
 | Skill | What it does |
 |-------|--------------|
-| [post](skills/post/SKILL.md) | The writing format: a short lead for people, then the full text in a collapsed "More details" block. Writes in your languages: a lead language and any others under it. Includes a check script. |
+| [post](skills/post/SKILL.md) | The writing format: a short lead for people, then the full text in a collapsed "More details" block that shows its read time. Writes in your languages: a lead language and any others under it. Includes a check script. |
 | [create-pr](skills/create-pr/SKILL.md) | Creates or updates a reviewable pull request: exact range, checks, title, before/after images right under the lead, body from `post`. Works with any host. Never merges. |
 | [fork-review](skills/fork-review/SKILL.md) | Opens a PR on your fork first, runs your review steps there (an agent loop such as `/clins:address-reviews`, a person, or a wait), then opens the same PR upstream and keeps both bodies in sync. Includes an optional Claude Code hook. |
 | [address-reviews](skills/address-reviews/SKILL.md) | Drives an open PR to done in a bounded loop: fixes failing CI and review comments from bots and people, replies in each thread with `post`, asks bots for a new review when they need it, and waits for it. Parks what needs you. Never merges. |
