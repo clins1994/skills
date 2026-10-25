@@ -74,7 +74,7 @@ gh api graphql --paginate -f query='query($endCursor:String){viewer{issueComment
 
 Replies in review threads are short posts with no block and no footer, so they never need a fix.
 
-For Linear, list all the issues the user created (`creator: "me"`) that are not done or canceled, and read every page. Ask only for the fields you need, since descriptions are long. Do not filter by `updatedAt`: a post that needed no change in the last run was not updated then, but a new fix can apply to it.
+For Linear, list all the issues the user created (`creator: "me"`), and read every page. Skip the issues whose status type is `completed`, `canceled` or `duplicate`. Ask only for the fields you need, since descriptions are long. Do not filter by `updatedAt`: a post that needed no change in the last run was not updated then, but a new fix can apply to it.
 
 Fetch each body (`gh pr view <url> --json body -q .body`, `gh issue view`, or `get_issue`) and keep only the ones with the clins footer. The comment search already has the bodies. The Linear MCP server cannot list a user's comments, so this skill does not cover Linear comments: say so in the report.
 
