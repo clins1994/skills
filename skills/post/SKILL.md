@@ -81,7 +81,7 @@ One language:
 
 ▸ 🇬🇧 More details · 3 min read   (collapsed: the full text)
 
-🤖 footer
+▸ 🤖 Generated with Claude Code · Opus 5.5 · clins:<skill>   (collapsed: how it was made)
 ```
 
 Lead english, also japanese:
@@ -96,7 +96,7 @@ Lead english, also japanese:
 ▸ 🇬🇧 More details · 3 min read   (collapsed: the full english)
 ▸ 🇯🇵 詳細 · 読了目安3分      (collapsed: the full japanese)
 
-🤖 footer
+▸ 🤖 Generated with Claude Code · Opus 5.5 · clins:<skill>   (collapsed: how it was made)
 ```
 
 Lead japanese, also english, when english is the source:
@@ -111,7 +111,7 @@ Lead japanese, also english, when english is the source:
 ▸ 🇯🇵 詳細 · 読了目安3分      (collapsed: the full japanese)
 ▸ 🇬🇧 More details · 3 min read   (collapsed: the full english)
 
-🤖 footer
+▸ 🤖 Generated with Claude Code · Opus 5.5 · clins:<skill>   (collapsed: how it was made)
 ```
 
 Block titles: 🇬🇧 More details, 🇯🇵 詳細, 🇨🇳 详细信息, 🇹🇼 詳細資訊, 🇰🇷 자세한 내용, 🇧🇷 Mais detalhes, 🇵🇹 Mais detalhes, 🇪🇸 Más detalles, 🇫🇷 Plus de détails, 🇩🇪 Weitere Details, 🇮🇹 Altri dettagli, 🇮🇳 अधिक विवरण, 🇩🇰 Flere detaljer, 🇦🇿 Ətraflı. For another language, use its flag and translate "More details" in the same short way.
@@ -123,13 +123,25 @@ Block titles: 🇬🇧 More details, 🇯🇵 詳細, 🇨🇳 详细信息, �
 - Every block is collapsed.
 - Each block title ends with its read time, after ` · `, so a reader knows the cost before they open it. The script counts it from that block's own text: 200 words a minute, or 500 characters a minute for japanese, chinese, korean and thai, rounded up, at least 1 minute. Run `check_post.py --read-time post.md` to print every title with its time, and copy those titles. Read times: `{n} min read`, `読了目安{n}分`, `阅读约{n}分钟`, `閱讀約{n}分鐘`, `{n}분 분량`, `{n} min de leitura`, `{n} min de lectura`, `{n} min de lecture`, `{n} Min. Lesezeit`, `{n} min di lettura`, `{n} मिनट में पढ़ें`, `{n} min. læsning`, `{n} dəq oxuma`. For another language, translate `{n} min read` in the same short way.
 - With more than one language, all blocks say the same thing, with the same headings, lists and code. Edit them together.
-- Footer, last. It names the skill the user ran, so a reader knows what to run to get the same result:
+- Footer, last: one collapsed block that says how the post was made. Its title is the line most readers see. Write the footer once, in the lead language, never once per language.
 
   ```
-  🤖 Generated with [Claude Code](https://claude.com/claude-code) using [clins:<skill>](https://github.com/clins1994/skills/blob/main/skills/<skill>/SKILL.md)
+  🤖 Generated with Claude Code · <model> · clins:<skill>
+
+  - Made with [Claude Code](https://claude.com/claude-code) in <where>, on <OS>
+  - Models: <model> (`<model id>`, <effort> effort) wrote it. <other models and what each did>
+  - Skills: [clins:<skill>](https://github.com/clins1994/skills/blob/main/skills/<skill>/SKILL.md), with <the skills it used>
+  - Asked for: <one or two sentences> (summary)
+  - Sources: <links that shaped the work>
   ```
 
-  `<skill>` is the skill that sent you here (for example `create-pr`, `github` or `linear`), and `post` when the user ran this skill directly. Name only that one skill. It links to the skills it uses.
+  - **The title** stays in this form, in english, so the check can find it. `<model>` is the model that wrote the post (for example `Opus 5.5`). Leave out ` · <model>` when you do not know it. `<skill>` is the skill that sent you here (for example `create-pr`, `github` or `linear`), and `post` when the user ran this skill directly.
+  - **Required lines:** the Claude Code link and the link to `clins:<skill>`.
+  - **Write only what you know.** Leave out a line, or a part of one, that you would have to guess. Your model and its id are in your system prompt. The effort level often is not, so leave it out unless you can see it.
+  - **Where:** the harness the user runs, for example the Claude desktop app (Code tab), the Claude Code CLI, the web or an IDE extension, and the OS.
+  - **Models:** every model that did part of the work, each with what it did, for example a subagent that ran the review loop or a workflow step.
+  - **Asked for:** your summary of what the user asked for, marked "(summary)". Quote the prompt word for word only when the user asks for it. Never include secrets, private names, internal links or anything the user did not want shared. In a public repo, the footer is public.
+  - **Sources:** research, docs, or related issues and pull requests that shaped the work. Leave out a link that the platform already shows (for example the Linear issue that GitHub's Linear integration adds).
 - **Short post:** when the details add nothing ("Fixed in abc1234. Please review again."), post only the leads. No divider, no block, no footer.
 - Anything a bot adds below the footer (for example a review summary) is not yours. Never edit it.
 
@@ -163,14 +175,17 @@ python3 <skill-dir>/scripts/check_post.py --platform github --langs en,ja post.m
 python3 <skill-dir>/scripts/check_post.py --platform linear --langs ja,en --source en post.md # lead japanese, english is the original
 python3 <skill-dir>/scripts/check_post.py --langs pt --title "pt=🇧🇷 Mais detalhes" post.md     # set a title the script does not know
 python3 <skill-dir>/scripts/check_post.py --read-time post.md                                # print each block title with its read time
+python3 <skill-dir>/scripts/check_post.py --fix post.md > new.md                              # bring an older post's format up to date
 ```
+
+`--fix` makes the format changes the script can make by itself (read times, the footer block) and changes nothing else. `clins:migrate-posts` uses it for open posts.
 
 Add `--skill <name>` to require that skill in the footer. Add `--template` when the post follows a repo template whose heading comes before the lead. It checks:
 
 - one lead per language, the "original" label when the source is not the lead, and a lead of at most two sentences
 - the divider, the block titles and their order, that blocks are collapsed and closed, and that no `<summary>` holds a heading
 - the read time after each block title, counted from that block's text
-- the footer: a `clins:<skill>` name that matches its link
+- the footer block: its title, last after the details blocks, the Claude Code link, and a `clins:<skill>` name that matches its link
 - english style on english text: em-dash, semicolon, curly quote, contraction, weak modal
 - sentence length in every language: 30 words, or 80 characters for languages written without spaces (japanese, chinese, thai). A link counts its text, not its URL.
 - no space between full-width and half-width text, for languages whose style guide asks for it (japanese)

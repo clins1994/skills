@@ -37,7 +37,7 @@ See [`AGENTS.md`](AGENTS.md) for the short version that agents read.
 
 - [ ] `claude plugin validate .` passes.
 - [ ] `python3 skills/post/scripts/test_check_post.py` passes, if you touched `post`. Add a test for a new check.
-- [ ] `skills/migrate-posts/references/migrations.md` has an entry, if the change alters how a post looks.
+- [ ] `check_post.py --fix` has a fix and a test, if the change alters how a post looks. See "Adding a fix" in [`migrate-posts`](skills/migrate-posts/SKILL.md).
 - [ ] `version` in `.claude-plugin/plugin.json` is bumped: minor for a new skill, patch for a fix. Without a bump, installed plugins do not update.
 - [ ] The `README.md` table matches the skills.
 - [ ] You tried the skill once on a real task, and you say in the PR what you tried.
