@@ -18,6 +18,7 @@ import sys
 
 PR_CREATE = re.compile(r"(?:^|[\s;&|(])gh\s+pr\s+create(?=$|[\s;&|)])")
 SKIP = "CLINS_FORK_REVIEW=skip"
+REPO_FLAG = re.compile(r"(?:^|[\s'\"])(?:-R|--repo)(?:=|\s+)['\"]?([\w.-]+/[\w.-]+)")
 SETTING = re.compile(
     r"clins:fork-review(?:\s+([\w.-]+/[\w.-]+))?\s*:\s*(.*)", re.IGNORECASE
 )
@@ -47,6 +48,9 @@ def strip_comments(text):
     out, quote, i, word_start = [], None, 0, True
     while i < len(text):
         c = text[i]
+        if text.startswith("\\\n", i) and quote != "'":
+            i += 2  # line continuation: bash removes it, the word state stays
+            continue
         step = 2 if c == "\\" and quote != "'" and i + 1 < len(text) else 1
         if quote:
             if c == quote:
@@ -192,6 +196,10 @@ def check(command, cwd, global_file):
     flags = parse_command(command)
     if flags is None or SKIP in command:
         return None
+    # Safety net for shell syntax the parser misreads: any repo named anywhere
+    # after `gh pr create` (even in a comment) that differs from the parsed one.
+    named = {r.lower() for r in REPO_FLAG.findall(command[PR_CREATE.search(command).end():])}
+    ambiguous = len(named - {flags.get("repo", "").lower()}) > 0
     try:
         root = run(["git", "rev-parse", "--show-toplevel"], cwd=cwd)
     except CheckFailed:
@@ -199,6 +207,10 @@ def check(command, cwd, global_file):
     # No line sets ask or fork anywhere: skip every network call.
     if not any_guard(root, global_file):
         return None
+    if ambiguous:
+        return decision("ask", "clins:fork-review: this command names more than one repo "
+                        f"({', '.join(sorted(named))}), so the guard can't tell which one "
+                        "gets the PR. Allow only if it should not get a fork review first.")
     try:
         repo = target_repo(flags, cwd)
     except CheckFailed as e:
@@ -279,6 +291,10 @@ def self_test():
     assert parse_command("gh pr create --title Fix\\ #123 -R up/repo --head me:t") == \
         {"repo": "up/repo", "head": "me:t"}
     assert parse_command("gh pr create --title 'it\\' -R up/repo #x") == {"repo": "up/repo"}
+    assert parse_command("gh pr create -R up/repo --head me:t \\\n# alt: -R me/repo") == \
+        {"repo": "up/repo", "head": "me:t"}
+    assert parse_command("gh pr create -R up/repo \\\n  --head me:t") == \
+        {"repo": "up/repo", "head": "me:t"}
 
     assert parse_setting("mode fork; review /greploop, then @alice") == {"mode": "fork"}
     assert parse_setting("mode bogus") == {}
@@ -300,6 +316,9 @@ def self_test():
         assert read_setting("up/line", root, glob) == {"mode": "origin", "fork": "me/up-line"}
         assert check("gh pr create -R up/line", root, glob) is None
         assert check(f"{SKIP} gh pr create -R up/line", root, glob) is None
+        # Two repos named (here one in a comment the parser drops): ask, no network.
+        r = check("gh pr create -R up/line # or: --repo me/up-line", root, glob)
+        assert r["hookSpecificOutput"]["permissionDecision"] == "ask", r
         assert read_setting("x/y", None, os.path.join(d, "missing")) == {}
 
         # A failed repo lookup asks when any line guards, and passes when none does.
