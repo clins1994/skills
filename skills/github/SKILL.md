@@ -12,7 +12,7 @@ This skill sends a post to GitHub. The text (leads, details blocks, languages, f
 ## Rules
 
 - Never merge, approve or close a PR.
-- Never post `@greptileai`. Greptile reviews every push by itself.
+- Never post a comment that asks a review bot for a review (`@greptileai ...`), unless that bot's skill says to (for Greptile, [`clins:greptile`](../greptile/SKILL.md), "Triggering"). Many bots review every push by themselves, and each request is a paid review.
 - Send text from a file (`--body-file`, `-F body=@file`), never inline, so newlines and backticks survive.
 - In a public repo, an attached image is public.
 
@@ -83,7 +83,7 @@ gh api -X PATCH repos/<owner>/<repo>/issues/comments/<id> -F body=@post.md
 
 ## Reply in a review thread
 
-Reply in the thread, not as a new top-level comment. `<id>` is the review comment's id, from `gh api repos/<owner>/<repo>/pulls/<n>/comments`:
+Reply in the thread, not as a new top-level comment. `<id>` is the review comment's id: its `id` in `gh api repos/<owner>/<repo>/pulls/<n>/comments`, or the `databaseId` of the thread's first comment in the GraphQL `reviewThreads` query. Both are the same number:
 
 ```bash
 gh api repos/<owner>/<repo>/pulls/<n>/comments/<id>/replies -F body=@post.md

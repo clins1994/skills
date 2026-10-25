@@ -1,6 +1,6 @@
 ---
 name: fork-review
-description: Review a pull request on your own fork before it goes to the upstream repo. Syncs the fork, pushes the branch, opens the same PR on the fork (ready, not draft), runs the review steps from the user's setting (an agent loop such as /greploop, a person or bot to wait for, or a plain wait), stops for the user's OK, then opens the upstream PR from the same branch with the same title and body, and keeps both bodies in sync. A setting picks ask, always fork, or always origin, per user or per repo. Includes an optional Claude Code hook that stops `gh pr create` from skipping the fork. clins:create-pr hands off here. Use when opening a PR on a repo you don't own, or when asked to "review on my fork first".
+description: Review a pull request on your own fork before it goes to the upstream repo. Syncs the fork, pushes the branch, opens the same PR on the fork (ready, not draft), runs the review steps from the user's setting (an agent loop such as /clins:address-reviews, a person or bot to wait for, or a plain wait), stops for the user's OK, then opens the upstream PR from the same branch with the same title and body, and keeps both bodies in sync. A setting picks ask, always fork, or always origin, per user or per repo. Includes an optional Claude Code hook that stops `gh pr create` from skipping the fork. clins:create-pr hands off here. Use when opening a PR on a repo you don't own, or when asked to "review on my fork first".
 user-invocable: true
 argument-hint: "[fork | origin] [PR number or URL to continue] [review steps for this PR]"
 ---
@@ -16,7 +16,7 @@ This skill owns the **route**: fork, review, upstream. [`clins:create-pr`](../cr
 - Never open the upstream PR before the review steps are done and the user says go.
 - Never merge the fork PR. Merging it would make the fork's base branch drift from upstream.
 - Never force-push the fork's base branch. If it has diverged from upstream, stop and ask.
-- Never post a mention or a comment to start a review bot. Request a review, or wait.
+- Start a review bot only the way its skill says (for Greptile, [`clins:greptile`](../greptile/SKILL.md)). Without a skill for it, request a review or wait.
 - Open the fork PR ready, not draft. Many review bots skip drafts.
 
 ## Settings
@@ -24,8 +24,8 @@ This skill owns the **route**: fork, review, upstream. [`clins:create-pr`](../cr
 One line in an instructions file the agent already reads:
 
 ```
-clins:fork-review: mode ask; review /greploop
-clins:fork-review <owner>/<repo>: mode fork; review /greploop, then @alice
+clins:fork-review: mode ask; review /clins:address-reviews
+clins:fork-review <owner>/<repo>: mode fork; review /clins:address-reviews, then @alice
 ```
 
 - `mode` is one of:
@@ -45,7 +45,7 @@ Look in this order. Each part (`mode`, `review`, `fork`) comes from the first pl
 **First run.** If no `mode` is found and the PR targets a repo the user doesn't own, ask, in the language the user writes in:
 
 1. "Review PRs on your fork before they go upstream?" Options: **ask each time** (`ask`), **always** (`fork`), **never** (`origin`). Then ask whether that answer is for this repo only or for every repo.
-2. Only for `ask` or `fork`: "How should the fork PR be reviewed?" Options: **wait for me** (`wait`), and **something else**, where the user types it, for example "/greploop" or "@alice".
+2. Only for `ask` or `fork`: "How should the fork PR be reviewed?" Options: **wait for me** (`wait`), and **something else**, where the user types it, for example "/clins:address-reviews" or "@alice".
 
 Show the line, save it to the user's global file, and say how to change it: "Saved. To change it, just tell me, for example: always review beeper/line on my fork."
 
@@ -93,7 +93,7 @@ Run them in order. Each step is one of:
 
 | Step | What to do |
 |---|---|
-| A slash command or skill, such as `/greploop` or `/clins:code-review` | Run it on the fork PR, passing the fork PR's URL or `-R <fork>` and number. Many loops find "the PR for this branch" through `origin`, which in a clone of upstream finds the wrong PR or none. Let it push its fixes to the branch. That's the point: they land before upstream sees anything. |
+| A slash command or skill, such as `/clins:address-reviews` or `/clins:code-review` | Run it on the fork PR, passing the fork PR's URL or `-R <fork>` and number. Many loops find "the PR for this branch" through `origin`, which in a clone of upstream finds the wrong PR or none. Let it push its fixes to the branch. That's the point: they land before upstream sees anything. |
 | `@login` or `@org/team` | Request a review on the fork PR: `gh pr edit <n> -R <fork> --add-reviewer <login>` (the reviewer needs access to the fork). Then stop and tell the user who you asked. When the user comes back, read `gh pr view <n> -R <fork> --json reviews,reviewDecision`. Fix what they asked for, push, and say what changed. Go on when the decision is `APPROVED` or the user says so. |
 | `wait`, or any words such as `wait for human review` | Stop. Tell the user the fork PR is ready for that review, with its URL. Go on when the user says so. A review bot that reviews every push by itself (Greptile, CodeRabbit) fits here. |
 
