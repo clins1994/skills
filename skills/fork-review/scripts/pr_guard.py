@@ -41,12 +41,40 @@ def run(args, cwd=None):
     return out.stdout.strip()
 
 
+def strip_comments(text):
+    """Drop shell comments: a `#` that starts an unquoted word, up to the line end.
+    A `#` inside a word (`fix#123`) or inside quotes stays."""
+    out, quote, i = [], None, 0
+    while i < len(text):
+        c = text[i]
+        if quote:
+            if c == "\\" and quote == '"' and i + 1 < len(text):
+                out.append(text[i:i + 2])
+                i += 2
+                continue
+            if c == quote:
+                quote = None
+        elif c == "\\" and i + 1 < len(text):
+            out.append(text[i:i + 2])
+            i += 2
+            continue
+        elif c in "'\"":
+            quote = c
+        elif c == "#" and (not out or out[-1][-1] in " \t\n;&|()"):
+            end = text.find("\n", i)
+            i = len(text) if end < 0 else end
+            continue
+        out.append(c)
+        i += 1
+    return "".join(out)
+
+
 def parse_command(command):
     """Return the flags of the first `gh pr create` in a shell command, or None."""
     m = PR_CREATE.search(command)
     if not m:
         return None
-    rest = command[m.end():]
+    rest = strip_comments(command[m.end():])
     # Tokenize first, so a separator inside a quoted title doesn't end the command.
     lexer = shlex.shlex(rest, posix=True, punctuation_chars=";&|()<>\n")
     lexer.commenters = ""
@@ -249,6 +277,11 @@ def self_test():
     assert parse_command("gh pr create -B main; gh pr create -R x/y") == {"base": "main"}
     assert parse_command("gh pr create --head me:fix#123 -R up/repo") == \
         {"head": "me:fix#123", "repo": "up/repo"}
+    assert parse_command("gh pr create -R up/repo --head me:t # alternative: -R me/repo") == \
+        {"repo": "up/repo", "head": "me:t"}
+    assert parse_command("gh pr create --title '# not a comment' -R up/repo") == {"repo": "up/repo"}
+    assert parse_command("gh pr create --title \"a \\\" # b\" -R up/repo") == {"repo": "up/repo"}
+    assert parse_command("gh pr create # -R me/repo\n-R x/y") == {}
 
     assert parse_setting("mode fork; review /greploop, then @alice") == {"mode": "fork"}
     assert parse_setting("mode bogus") == {}
