@@ -36,6 +36,7 @@ The plugin names each skill `clins:<skill>`, for example `/clins:post`. The skil
 | [fork-review](skills/fork-review/SKILL.md) | Opens a PR on your fork first, runs your review steps there (an agent loop such as `/clins:address-reviews`, a person, or a wait), then opens the same PR upstream and keeps both bodies in sync. Includes an optional Claude Code hook. |
 | [address-reviews](skills/address-reviews/SKILL.md) | Drives an open PR to done in a bounded loop: fixes failing CI and review comments from bots and people, replies in each thread with `post`, asks bots for a new review when they need it, and waits for it. Parks what needs you. Never merges. |
 | [greptile](skills/greptile/SKILL.md) | Works with Greptile reviews: finds the score and open comments, tells whether Greptile reviews each push, asks for a review and waits for it, and runs a local review with the Greptile CLI. `address-reviews` uses it. |
+| [raycast-publish](skills/raycast-publish/SKILL.md) | Publishes a Raycast extension through a PR on `raycast/extensions`: syncs your fork, pulls contributions, prepares the extension against Raycast's live guidelines, writes the full description from Raycast's template before publishing, gets Greptile to 5/5 on the draft with `address-reviews`, then marks it ready on your OK. Never merges. |
 | [github](skills/github/SKILL.md) | Posts to GitHub with `gh`: PR bodies with images uploaded by `gh --attach` and a render check, PR comments, replies in review threads, and issues. |
 | [linear](skills/linear/SKILL.md) | Posts to Linear through its MCP server: new issues with fields, safe description updates with `patch`, comments and thread replies. |
 
@@ -45,10 +46,11 @@ How they fit together:
 create-pr ──► post (text) ──► github (commands)
     └──────► fork-review (fork first, then upstream)
 address-reviews ──► greptile (reviewer) · post (replies) · github (commands)
+raycast-publish ──► post (text) · github (commands) · address-reviews (review on the draft)
 linear ─────► post (text)
 ```
 
-`post` owns the text. `github` and `linear` own the platform: syntax, commands and updates. `create-pr` owns the pull request workflow and works with any host skill, so a `gitlab` skill can sit next to `github` later. A `jira` skill can sit next to `linear` the same way. `fork-review` owns the route when a PR goes to your fork before upstream. `address-reviews` owns the fix loop on an open PR, and each review bot gets its own skill (`greptile` today), so a `coderabbit` skill can sit next to it later.
+`post` owns the text. `github` and `linear` own the platform: syntax, commands and updates. `create-pr` owns the pull request workflow and works with any host skill, so a `gitlab` skill can sit next to `github` later. A `jira` skill can sit next to `linear` the same way. `fork-review` owns the route when a PR goes to your fork before upstream. `address-reviews` owns the fix loop on an open PR, and each review bot gets its own skill (`greptile` today), so a `coderabbit` skill can sit next to it later. `raycast-publish` owns the route to the Raycast Store, and reads Raycast's own docs and CLI on every run instead of copying them.
 
 ## Fork review
 
@@ -61,7 +63,7 @@ clins:fork-review <owner>/<repo>: mode fork; review /clins:address-reviews, then
 
 `mode` is `ask` (ask each time), `fork` (always) or `origin` (never). `review` lists the steps: a command for the agent to run, `@someone` to request a review from, or `wait`.
 
-The Claude Code plugin also ships a hook that asks before, or blocks, a `gh pr create` that skips the fork, depending on `mode`. It does nothing until you add the line. Agents that install with `npx skills` (Codex, Cursor, others) get the skill only, with no hook.
+The Claude Code plugin also ships a hook that asks before, or blocks, a `gh pr create` that skips the fork, depending on `mode`. It does nothing until you add the line. For a repo that already reviews every PR upstream (for example `raycast/extensions`, which runs Greptile), add `clins:fork-review <owner>/<repo>: mode origin`. Agents that install with `npx skills` (Codex, Cursor, others) get the skill only, with no hook.
 
 ## Languages
 
