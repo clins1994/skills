@@ -2,7 +2,9 @@
 """Tests for check_post.py. Run: python3 test_check_post.py"""
 import pathlib
 import re
+import subprocess
 import sys
+import tempfile
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from check_post import EN_TITLE, FOOTER, check, detect, fix, footer, read_minutes, summary_lines  # noqa: E402
@@ -240,6 +242,29 @@ def old(post: str, platform: str = "github") -> str:
 
 
 BOT = "\n<details><summary>🇬🇧 More details · 9 min read</summary>\n\nbot text\n</details>\n"
+LINEAR_BOT = "\n>>> 🇬🇧 More details · 9 min read\n\nbot text\n\n>>>\n"
+
+
+def saved_on_linear(post: str) -> str:
+    """Linear saves every link as [text](<url>)."""
+    return re.sub(r"\]\((https?://[^)\s]+)\)", r"](<\1>)", post)
+
+
+# Fenced examples of a block, a Linear block and the old footer, inside a details block.
+FENCED = ("- Retry three times.\n\n```\n<details><summary>🇬🇧 More details · 4 min read</summary>\n```\n\n"
+          f"```\n>>> {EN_TITLE} · 4 min read\n\nx\n\n>>>\n```\n\n```\n{OLD}\n```")
+GH_FENCED = GH_EN.replace("- Retry three times.", FENCED)
+BOLD = GH_EN.replace(f"<b>{EN_TITLE}</b> · 1 min read", f"<b>{EN_TITLE} · 1 min read</b>")
+
+
+def cli(post: str, *args: str) -> str:
+    """What check_post.py prints for the post."""
+    with tempfile.NamedTemporaryFile("w", suffix=".md", encoding="utf-8", delete=False) as f:
+        f.write(post)
+    out = subprocess.run([sys.executable, str(pathlib.Path(__file__).parent / "check_post.py"), *args, f.name],
+                         capture_output=True, text=True)
+    pathlib.Path(f.name).unlink()
+    return out.stdout + out.stderr
 FIXES = [
     ("english github post", GH_EN, dict()),
     ("english linear post", LINEAR_EN, dict(platform="linear")),
@@ -265,6 +290,23 @@ for name, ok in [
     ("mixed line endings are left alone", fix(old(GH_EN).replace("\n", "\r\n", 3)) == old(GH_EN).replace("\n", "\r\n", 3)),
     ("an old footer whose link does not match is left alone",
      OLD.replace("[clins:post]", "[clins:linear]") in fix(old(GH_EN).replace("[clins:post]", "[clins:linear]"))),
+    ("a saved Linear post gets the footer block, and its bot section stays",
+     fix(saved_on_linear(old(LINEAR_EN, "linear")) + LINEAR_BOT) == LINEAR_EN + LINEAR_BOT),
+    ("other saved Linear links keep their form", "[doc](<https://example.com>)" in fix(saved_on_linear(
+        old(LINEAR_EN, "linear").replace("query string.", "query string. See [doc](https://example.com)."))
+        + LINEAR_BOT)),
+    ("a saved Linear footer block keeps the text below it", fix(saved_on_linear(LINEAR_EN) + LINEAR_BOT.replace(
+        "9 min", "7 min")) == saved_on_linear(LINEAR_EN) + LINEAR_BOT.replace("9 min", "7 min")),
+    ("a read time inside bold keeps the closing tag", fix(BOLD.replace("1 min read", "7 min read")) == BOLD),
+    ("a missing read time inside bold goes after the tag", fix(BOLD.replace(" · 1 min read", "")) == GH_EN),
+    ("a title with markup the fix does not know stays",
+     fix(BOLD.replace("1 min read", "<i>7</i> min read")) == BOLD.replace("1 min read", "<i>7</i> min read")),
+    ("fenced examples do not change, and the footer stays GitHub", fix(old(GH_EN).replace("- Retry three times.", FENCED)) == GH_FENCED),
+    ("a fenced example is not a block or a footer", check(GH_FENCED, "github") == []),
+    ("the CLI reports a footer above the blocks",
+     "after the details blocks" in cli(GH_EN.replace(FOOTER, "").replace("---\n", "---\n\n" + FOOTER + "\n"))),
+    ("the CLI does not check a bot block below the footer", "0 error(s)" in cli(GH_EN + BOT, "--platform", "github")),
+    ("the CLI reads saved Linear links", "0 error(s)" in cli(saved_on_linear(LINEAR_EN) + LINEAR_BOT, "--platform", "linear")),
     ("a custom title gets its read time", fix(GH_EN.replace(EN_TITLE, "🇽🇽 Custom").replace(" · 1 min read", ""),
                                              {"xx": "🇽🇽 Custom"}, {"xx": "{n} xx"}).count("🇽🇽 Custom</b> · 1 xx") == 1),
 ]:
