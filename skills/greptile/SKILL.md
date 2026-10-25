@@ -28,13 +28,13 @@ Run on its own:
 
 ## Where the score is
 
-Greptile writes its summary in one of three places, depending on the install. Read all three and use the one updated last:
+Greptile writes its summary in one of three places, depending on the install. Read all three and use the newest:
 
 1. **Issue comments.** `gh api --paginate "repos/<owner>/<repo>/issues/<n>/comments?per_page=100"`. Greptile edits the same summary comment on every review, so sort by `updated_at`, not `created_at`. Read its "Prompt to fix all with AI" section too: it can list issues that have no inline comment.
 2. **Reviews.** `gh api repos/<owner>/<repo>/pulls/<n>/reviews`, the newest from a Greptile author.
-3. **The PR body.** `gh pr view <n> --json body -q .body`, in a block Greptile appends below the footer.
+3. **The PR body.** `gh pr view <n> --json body -q .body`, in a block Greptile appends below the footer. The body has no `updated_at` of its own. Use the block's "Last reviewed commit" link to see which commit it is for, and its "Reviews (N)" count to see that it changed.
 
-The score is the first `N/5` in that summary (`Confidence Score: 4/5`). A score belongs to a commit: check that the review or check run is for the current `headRefOid`. A score for an older commit is stale.
+The score is the first `N/5` in that summary (`Confidence Score: 4/5`). A score belongs to a commit: check that it is for the current `headRefOid` (the review's `commit_id`, the check run's `head_sha`, or the PR body's "Last reviewed commit"). A score for an older commit is stale. When two places disagree, use the one for the current head, then the one with the newer review.
 
 ## Open comments
 
