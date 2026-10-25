@@ -178,7 +178,7 @@ python3 <skill-dir>/scripts/check_post.py --read-time post.md                   
 python3 <skill-dir>/scripts/check_post.py --fix post.md > new.md                              # bring an older post's format up to date
 ```
 
-`--fix` makes the format changes the script can make by itself (read times, the footer block) and changes nothing else. `clins:migrate-posts` uses it for open posts.
+`--fix` makes the format changes the script can make by itself (read times, the footer block) and changes nothing else.
 
 Add `--skill <name>` to require that skill in the footer. Add `--template` when the post follows a repo template whose heading comes before the lead. It checks:
 

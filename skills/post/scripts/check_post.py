@@ -176,8 +176,7 @@ def summary_lines(text: str, titles: dict[str, str] | None = None, reads: dict[s
 
 # --fix: the format changes the script can make by itself, so an older post can catch up
 # without anyone rewriting its words. Each fix changes markup only, runs only on a post that
-# has its old format, and does nothing the second time. Delete a fix once no open post needs
-# it: after clins:migrate-posts has run on every account past that version.
+# has its old format, and does nothing the second time. Delete a fix once no open post needs it.
 
 def fix_read_time(top: str, phrases: dict[str, str]) -> str:
     """0.7.0: each block title ends with its read time."""
