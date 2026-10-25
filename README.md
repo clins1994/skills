@@ -69,11 +69,11 @@ The skills work in any language, but only these have been used for real so far:
 
 The first run (the language questions) has only been tried in english.
 
-If you write in another language, or one of these looks wrong, please open an issue or a pull request: a post that reads badly, a check that fails on good text, or a block title or "original" label your language needs. See [CONTRIBUTING.md](CONTRIBUTING.md).
+If you write in another language, or one of these looks wrong, please open an issue: a post that reads badly, a check that fails on good text, or a block title or "original" label your language needs. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Contributing
 
-Ideas and pull requests are welcome. Some starting points: a Linear API path for `linear`, a GitHub MCP path for `github`, a `gitlab` host skill for `create-pr`, and a `jira` tracker skill next to `linear`. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Ideas and bug reports are welcome as issues. Only I open pull requests. Some starting points: a Linear API path for `linear`, a GitHub MCP path for `github`, a `gitlab` host skill for `create-pr`, and a `jira` tracker skill next to `linear`. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Credits
 

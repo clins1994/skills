@@ -2,18 +2,24 @@
 
 Thanks for wanting to help. These skills are small on purpose, so most contributions are small too: a sharper rule, a missing case, or support for another tool.
 
+## Issues, not pull requests
+
+This repo takes issues from everyone, and only I open pull requests. GitHub blocks pull requests from other accounts.
+
+To help, [open an issue](https://github.com/clins1994/skills/issues/new):
+
+- **A bug or a bad post:** what you asked the agent, what it wrote, and what you expected.
+- **An idea or a new skill:** what problem it solves and how you would do it.
+- **A fix you already wrote:** describe it, and link the branch or commit on your fork. If it fits, I bring it in with you as the co-author.
+
 ## Using AI
 
 You can use AI to help you contribute. Two rules, adapted from [Anthony Fu's contribution guide](https://github.com/antfu/contribute):
 
-1. **Never let an LLM speak for you.** Write issues, comments and PR descriptions in your own words. Short and plain beats long and polished.
+1. **Never let an LLM speak for you.** Write issues and comments in your own words. Short and plain beats long and polished.
 2. **Never let an LLM think for you.** Understand every line you send. Tell us what *you* think, not what a model said.
 
-A pull request that looks fully generated and unreviewed may be closed without discussion.
-
-## Discuss first
-
-For a new skill, or a big change to one, open an issue first. Say what problem it solves and how you would do it. For a typo or a small fix, send the pull request directly.
+An issue that looks fully generated and unreviewed may be closed without discussion.
 
 ## How a skill is laid out
 
@@ -33,23 +39,24 @@ skills/<name>/
 
 See [`AGENTS.md`](AGENTS.md) for the short version that agents read.
 
-## Before you submit
+## Checks for a change
+
+If you link a branch in an issue, it should pass these.
 
 - [ ] `claude plugin validate .` passes.
 - [ ] `python3 skills/post/scripts/test_check_post.py` passes, if you touched `post`. Add a test for a new check.
 - [ ] `version` in `.claude-plugin/plugin.json` is bumped: minor for a new skill, patch for a fix. Without a bump, installed plugins do not update.
 - [ ] The `README.md` table matches the skills.
-- [ ] You tried the skill once on a real task, and you say in the PR what you tried.
+- [ ] You tried the skill once on a real task, and you say in the issue what you tried.
 
-## Commits and pull requests
+## Commits
 
 - Small commits, one change each, with the skill as the prefix: `linear: reply in threads with parentId`. Use `README:`, `plugin:` or no prefix for repo-wide changes.
-- Pull requests are merged with a merge commit, so keep your commits clean. No need to squash them yourself.
-- Link the issue: `closes #123`.
+- Changes are merged with a merge commit, so keep your commits clean. No need to squash them yourself.
 
 ## Ideas
 
-Good places to start. Open an issue to claim one, or to suggest your own.
+Good places to start. Open an issue to take one, or to suggest your own.
 
 **Other ways in**
 
