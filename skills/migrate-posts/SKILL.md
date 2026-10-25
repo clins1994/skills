@@ -64,7 +64,7 @@ gh search issues --author @me --state open --limit 1000 --json url,repository,nu
 
 GitHub search returns at most 1000 results. If a search returns 1000, some posts can be missing: say so in the report, and do not record the account in step 8.
 
-For Linear, list all the issues the user created (`creator: "me"`) that are not done or canceled, and read every page. Ask only for the fields you need, since descriptions are long. Do not filter by `updatedAt`: a post that needed no change in the last run was not updated then, but a new migration can apply to it.
+For Linear, list all the issues the user created (`creator: "me"`) that are not done or canceled, and read every page. Ask only for the fields you need, since descriptions are long. Do not filter by `updatedAt`: a post that needed no change in the last run was not updated then, but a new fix can apply to it.
 
 Fetch each body (`gh pr view <url> --json body -q .body`, `gh issue view`, or `get_issue`) and keep only the ones with the clins footer.
 
@@ -80,6 +80,7 @@ diff body.md fixed.md
 
 - `--fix` keeps everything below the footer, and the line endings, as they were. It leaves a post with mixed line endings alone.
 - If the check says the post must start with a lead, not a heading, run it again with `--template`.
+- If it names a block title it cannot place, ask the user for that language's code, "original" label and read time, and run `--fix` and the check again with `--title`, `--label` and `--read`. Under "no dry run", report the post and skip it.
 - `fixed.md` the same as `body.md`: the post is up to date.
 - Otherwise the plan is the diff. Read it: it may change only block titles and the footer. Any other change is a bug in `--fix`. Stop and report it.
 - Errors the check still shows go in **Left as is**.

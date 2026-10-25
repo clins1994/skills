@@ -219,14 +219,17 @@ SUMMARIES = [
 ]
 
 # detect: languages from the block titles, the source from the "original" label.
+NL = "🇳🇱 Meer details"
 DETECTS = [
-    ("english only", GH_EN, (["en"], "en")),
-    ("english lead, also japanese", GH_EN_JA, (["en", "ja"], "en")),
-    ("japanese lead, english source", GH_JA_EN, (["ja", "en"], "en")),
-    ("portuguese and japanese", GH_PT_JA, (["pt", "ja"], "pt")),
-    ("short post", "Fixed.\n", (["en"], "en")),
-    ("template heading", "## Description\n\n" + GH_JA_EN, (["ja", "en"], "en"), True),
-    ("mention line", "@reviewer\n\n" + GH_JA_EN, (["ja", "en"], "en")),
+    ("english only", GH_EN, {}, (["en"], "en", [])),
+    ("english lead, also japanese", GH_EN_JA, {}, (["en", "ja"], "en", [])),
+    ("japanese lead, english source", GH_JA_EN, {}, (["ja", "en"], "en", [])),
+    ("portuguese and japanese", GH_PT_JA, {}, (["pt", "ja"], "pt", [])),
+    ("short post", "Fixed.\n", {}, (["en"], "en", [])),
+    ("template heading", "## Description\n\n" + GH_JA_EN, {"template": True}, (["ja", "en"], "en", [])),
+    ("mention line", "@reviewer\n\n" + GH_JA_EN, {}, (["ja", "en"], "en", [])),
+    ("unknown title is reported", GH_EN.replace(EN_TITLE, NL), {}, (["en"], "en", [NL])),
+    ("unknown title with --title", GH_EN.replace(EN_TITLE, NL), {"titles": {"nl": NL}}, (["nl"], "nl", [])),
 ]
 
 # fix: an old post (no read times, one-line footer) catches up, and only its format changes.
@@ -267,8 +270,8 @@ for name, ok in [
 ]:
     print(("ok  " if ok else "FAIL"), "fix:", name)
     failed += not ok
-for name, text, want, *template in DETECTS:
-    got = detect(text, *template)
+for name, text, kw, want in DETECTS:
+    got = detect(text, **kw)
     print(("ok  " if got == want else "FAIL"), "detect:", name, "" if got == want else got)
     failed += got != want
 for name, text, titles, reads, kw, want in SUMMARIES:
