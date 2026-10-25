@@ -74,7 +74,7 @@ What Raycast did when this skill was written (last seen: October 2026, `@raycast
 
 | Last seen | Check | If it changed |
 |---|---|---|
-| The tools: `npm run publish` runs `ray publish`, and `ray pull-contributions` merges changes made upstream. | `npx @raycast/api@latest --help`, and the publish docs. | Use the commands the docs name now. If publish or pull-contributions is gone, stop and ask. |
+| The tools: `ray publish` opens the PR (the docs say `npm run publish`, and the template's script is `npx @raycast/api@latest publish`), and `ray pull-contributions` merges changes made upstream. | `npx @raycast/api@latest --help`, the publish docs, and `scripts.publish` in the extension's `package.json`. | Use the commands the docs name now. If publish or pull-contributions is gone, stop and ask. |
 | The extension should use the latest `@raycast/api`. | `npm view @raycast/api version` against the extension's `package.json`. | Offer the upgrade (and `ray migrate` when the docs say so) before you publish. |
 | `ray publish` needs a git repo with a clean working tree. | `git status` in the extension folder. | Follow the CLI's message. |
 | `ray publish` forks `raycast/extensions` as `<you>/raycast-extensions`, keeps its own clone, copies the whole extension folder into it, pushes the branch `ext/<name>`, and opens a **draft** PR with Raycast's template and every section empty. | Right after publishing: `gh pr view <n> -R raycast/extensions --json isDraft,headRefName,body`. | If it opened ready, tell the user, and go to the review loop at once. If the CLI wrote a full body, merge your text into it instead of replacing it. |
@@ -144,11 +144,13 @@ Ask: "Publish it now? This opens a draft PR on raycast/extensions." Wait for a c
 
 ### 6. Publish and describe
 
-1. From the extension folder, run the publish command from the docs, with `gh`'s token so the CLI needs no sign-in of its own:
+1. From the extension folder, run the publish command with the same CLI whose help you checked, and with `gh`'s token so the CLI needs no sign-in of its own:
 
    ```bash
-   GITHUB_ACCESS_TOKEN=$(gh auth token) npm run publish 2>&1 | tee <temp-folder>/publish.log
+   GITHUB_ACCESS_TOKEN=$(gh auth token) npx @raycast/api@latest publish 2>&1 | tee <temp-folder>/publish.log
    ```
+
+   If the extension's `scripts.publish` does something more than `ray publish` (a build step, a custom command), show it to the user and ask which to run.
 
    Give the call a 600000 ms timeout. If it waits for input (a GitHub sign-in, or a question about a half-finished merge in its clone), stop and ask the user to run it in a terminal.
 2. Take the PR URL from the log. If there is none, read the log, report, and stop.
@@ -164,15 +166,15 @@ Hand off to `clins:address-reviews` with:
 
 - the PR URL, and `-R raycast/extensions`,
 - the working folder: the extension folder (not the CLI's clone),
-- the push command: `GITHUB_ACCESS_TOKEN=$(gh auth token) npm run publish`, run from that folder after each commit.
+- the push command: the publish command from step 6, run from that folder after each commit.
 
 It loops until CI is green, Greptile is done with the current head (`5/5`, no open thread), and every person has a reply. A new publish can change the body: check it after each round, and fix it as in step 6.
 
 ### 8. Stop for the user, then mark it ready
 
-Show the PR URL, Greptile's score, what the loop fixed, and what it parked. Ask: "Mark it ready for review? This puts it in the Raycast reviewers' queue." On a clear yes:
-
 With `ready after-review`, ask only when the loop's report says done: CI green, and Greptile `5/5` on the current head with no open thread. If it stopped for any other reason (round cap, no change, a review that did not come), keep the PR a draft, show what is left, and stop.
+
+Show the PR URL, Greptile's score, what the loop fixed, and what it parked. Ask: "Mark it ready for review? This puts it in the Raycast reviewers' queue." On a clear yes:
 
 ```bash
 gh pr ready <n> -R raycast/extensions
