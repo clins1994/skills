@@ -84,8 +84,8 @@ Find out once per PR whether Greptile reviews each push by itself:
    - None of these keys: the setting in the Greptile dashboard decides, and you cannot read it. Go to step 2.
 2. If the config does not say, look at the history of this PR and the last 3 merged PRs. Leave out the first Greptile check run on each PR: Greptile often reviews a PR when it opens, also on installs that do not review later pushes. For each later check run, look for a Greptile request comment (`@greptileai` or `@greptile`) between the push of the run's commit and the start of the run. The run's `head_sha` is that commit. GitHub creates the commit's check suites when the commit is pushed, so the earliest one is the push time: `gh api repos/<owner>/<repo>/commits/<sha>/check-suites --jq '[.check_suites[].created_at] | min'`. Do not use the committer date: a commit can be made long before it is pushed. Do not use a fixed window either: a requested review can start minutes after the request.
    - Later runs with no request in that span: Greptile reviews on push.
-   - Every later run has a request before it, and pushes with no request got no run: Greptile waits to be asked.
-   - No later runs to look at: go to step 3.
+   - Every later run has a request before it, and at least one push with no request got no run: Greptile waits to be asked.
+   - Every push had a request, or no later runs to look at: go to step 3. A repo that reviews on push looks like this when each request came seconds after the push.
 3. If you still do not know, push, then wait up to 3 minutes for a Greptile check run on the new head. If one appears, Greptile reviews on push. If none appears, it waits to be asked.
 
 A review request is a command to the bot, not a post: do not write it with `clins:post`. To ask for a review, first make sure that no Greptile check run is queued or running on the head (`gh pr checks <n> --json name,state`). Then:
