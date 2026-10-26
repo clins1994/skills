@@ -88,7 +88,11 @@ Find out once per PR whether Greptile reviews each push by itself:
    - Every push had a request, or no later runs to look at: go to step 3. A repo that reviews on push looks like this when each request came seconds after the push.
 3. If you still do not know, push, then wait up to 3 minutes for a Greptile check run on the new head. If one appears, Greptile reviews on push. If none appears, it waits to be asked.
 
-A review request is a command to the bot, not a post: do not write it with `clins:post`. To ask for a review, first make sure that no Greptile check run is queued or running on the head (`gh pr checks <n> --json name,state`). Then:
+A review request is a command to the bot, not a post: do not write it with `clins:post`. To ask for a review, first make sure that no Greptile check run is queued or running on the head (`gh pr checks <n> --json name,state`).
+
+After a push, wait 30 seconds before you ask. Then look for a Greptile check run on the new head that is not in `before.txt` (see "Waiting for a review"): `greptile_runs "$HEAD_SHA" | grep -v -w -F -f before.txt`. If there is one, Greptile reviews on push after all. Do not ask: a second request starts a second paid review. Wait for that run, and treat this PR as one that reviews on push.
+
+Then ask:
 
 - After a fix round: `gh pr comment <n> --body "@greptileai follow-up review"`. A follow-up review checks what changed since the last review. It usually closes a PR in one or two rounds.
 - For a full new review (for example when the user asks): `gh pr comment <n> --body "@greptileai review"`. A full review reads the whole PR again and often finds new small issues, so loops that use it every round run to their cap.
