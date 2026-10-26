@@ -33,4 +33,4 @@ Python with Pillow works too: `ImageDraw.Draw(img).ellipse(box, outline="red", w
 
 ## Place it
 
-Directly after the leads, before the divider, with alt text that says what it shows, for example `![The Save button, circled in red, far from the form](<url>)`. The platform skill says how to upload the file and get the URL.
+Directly after the leads, before the divider, with alt text that says what it shows, for example `![The Save button, circled in red, far from the form](<url>)`. The platform skill says how to upload the file and get the URL. If it has no upload step (Slack, for now), leave the image out.
