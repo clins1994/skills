@@ -78,6 +78,15 @@ The first time you run `post`, it asks, in the language you write to it in, whic
 clins:post languages: lead english; also japanese
 ```
 
+If you post from more than one account, for example a work and a personal GitHub account, each one can have its own languages:
+
+```
+clins:post languages github:alice-personal: lead english
+clins:post accounts: github:alice-work, github:alice-personal
+```
+
+`post` asks about each account the first time it sees it, and saves the answer. The line without an account stays the default.
+
 After that, change languages for one post in plain words: "japanese as well", "only the lead", "swap them", "use only portuguese". To change the default, say so: "change my post languages to portuguese and japanese". A repo can set its own default in its `AGENTS.md` or `CLAUDE.md`.
 
 ### Tested languages
