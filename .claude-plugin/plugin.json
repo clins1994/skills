@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "clins",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "Caio Lins's agent skills: a post format in your own languages, reviewable pull requests with before/after images, review on your fork before upstream, a loop that addresses PR reviews (with Greptile support), publishing Raycast extensions, posting to GitHub, Linear and Slack, a times for your own updates, and migrating open posts when the skills change.",
   "author": {
     "name": "Caio Lins",
