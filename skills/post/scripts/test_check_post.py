@@ -335,6 +335,9 @@ SLACK = [
     ("leads only", SLACK_MSG, None, JA_EN, []),
     ("english only", "Adds retry to the upload step.\n", None, dict(), []),
     ("mention line first", "<@U123>\n\n" + SLACK_MSG, None, JA_EN, []),
+    ("lead that starts with a mention", "<@U123> " + SLACK_MSG, None, JA_EN, []),
+    ("--- in a code example", SLACK_MSG, SLACK_REPLY.replace("- Retry three times.\n", "- Retry three times.\n\n```\n---\n```\n")
+     .replace("- 3回まで再試行する。\n", "- 3回まで再試行する。\n\n```\n---\n```\n"), JA_EN, []),
     ("half-width colon after 原文", SLACK_MSG.replace("原文：", "原文: "), None, JA_EN, ["原文："]),
     ("extra paragraph in the message", SLACK_MSG + "\nMore text.\n", None, JA_EN, ["only the leads"]),
     ("footer", SLACK_MSG, SLACK_REPLY + f"\n{FOOTER}\n", JA_EN, ["footer"]),

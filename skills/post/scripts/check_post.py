@@ -552,7 +552,7 @@ def check_slack(message: str, reply: str | None, langs: list[str] | None = None,
             err.append(f"The {name} has a footer. Slack posts have none: the post shows who sent it.")
         if matches((GITHUB, LINEAR), text):
             err.append(f"The {name} has GitHub or Linear block syntax. Slack has no collapsed block.")
-        if "---" in (l.strip() for l in text.split("\n")):
+        if "---" in (l.strip() for l in FENCE.sub("", text).split("\n")):
             err.append(f"The {name} has a --- line. Slack shows it as text, not as a divider.")
         if "@greptileai" in text:
             err.append(f"The {name} contains @greptileai.")
@@ -562,7 +562,9 @@ def check_slack(message: str, reply: str | None, langs: list[str] | None = None,
     if slack_sections(message, set(want_titles)):
         err.append("The details go in the thread reply, not in the channel message.")
     lines = message.strip().split("\n")
-    lines = lines[1:] if lines and lines[0].startswith(("@", "<@", "<!")) else lines
+    # A line of mentions only comes first. A lead that starts with a mention is still a lead.
+    if lines and re.fullmatch(r"(?:\s*(?:<[@!][^>\s]+>|@\S+))+\s*", lines[0]):
+        lines = lines[1:]
     paras = [p.strip() for p in re.split(r"\n\s*\n", "\n".join(lines).strip()) if p.strip()]
     if len(paras) < len(langs):
         return err + [f"Expected one lead per language ({', '.join(langs)}), found {len(paras)}."]
