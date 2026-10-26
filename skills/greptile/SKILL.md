@@ -90,7 +90,14 @@ Find out once per PR whether Greptile reviews each push by itself:
 
 A review request is a command to the bot, not a post: do not write it with `clins:post`. To ask for a review, first make sure that no Greptile check run is queued or running on the head (`gh pr checks <n> --json name,state`).
 
-After a push, wait 30 seconds before you ask. Then look for a Greptile check run on the new head that is not in `before.txt` (see "Waiting for a review"): `greptile_runs "$HEAD_SHA" | grep -v -w -F -f before.txt`. If there is one, Greptile reviews on push after all. Do not ask: a second request starts a second paid review. Wait for that run, and treat this PR as one that reviews on push.
+After a push, wait 30 seconds before you ask. Then read the new head, and look for a Greptile check run on it that is not in `before.txt` (`greptile_runs` and `before.txt` are in "Waiting for a review"):
+
+```bash
+HEAD_SHA=$(gh pr view <n> -R <owner>/<repo> --json headRefOid -q .headRefOid)
+greptile_runs "$HEAD_SHA" | grep -v -w -F -f before.txt
+```
+
+If there is one, Greptile reviews on push after all. Do not ask: a second request starts a second paid review. Wait for that run, and treat this PR as one that reviews on push.
 
 Then ask:
 
