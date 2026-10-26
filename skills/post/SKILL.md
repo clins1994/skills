@@ -37,6 +37,33 @@ Look for it in this order, and use the first one you find:
 2. The repo's `AGENTS.md` or `CLAUDE.md`. A team can set its own default there.
 3. The user's global instructions file, for example `~/.claude/CLAUDE.md` for Claude Code or `~/.codex/AGENTS.md` for Codex.
 
+### Per account
+
+A user can post from more than one account, for example a work account and a personal account on GitHub. Each account can have its own line:
+
+```
+clins:post languages: lead japanese; also english; source english
+clins:post languages github:alice-personal: lead english
+clins:post accounts: github:alice-work, github:alice-personal
+```
+
+- The **account** is the one that sends the post. On GitHub, it is the login that `gh` posts with: `gh api user --jq .login`. Run it after any account switch. On other platforms, the line without an account applies.
+- At each place in the lookup order above, a line for the account wins over the line without one.
+- An account line has the same form as the default line. Its lead language is the source unless the line names another `source`.
+- The `accounts` line lists the accounts that the user already answered for. It lets you notice a new account.
+
+### New accounts
+
+Before you write a GitHub post, list the signed-in accounts with `gh auth status`, and compare them with the `accounts` line.
+
+- **There is no `accounts` line yet.** Per-account languages are new to this user. Tell them once that clins:post can now use different languages for each account.
+  - One account: save the `accounts` line with it, and change nothing else.
+  - Several accounts: ask about each one: "Does `<account>` use your default languages, or its own?" Save an account line for each account that has its own. Then save the `accounts` line with all of them.
+- **An account is not in the `accounts` line.** Ask the same question for that account only, and add it to the line.
+- If you cannot ask, an unanswered account changes nothing for the other accounts. If the account that sends the post has its own line, use that line. If that account is the unanswered one, use the line without an account, and say so in your result.
+
+Save these lines next to the default line, in the user's global instructions file. To change them later, the user says so in plain words, for example: "use only english on alice-personal".
+
 ### First run
 
 If no default exists, ask before you write. Ask in the language the user writes to you in, so a user never has to read a language they did not choose. Use the agent's question tool with options when it has one, and plain text when it does not. The wording below is an example for a user who writes in english:
@@ -165,7 +192,7 @@ Block titles: 🇬🇧 More details, 🇯🇵 詳細, 🇨🇳 详细信息, �
 
 ## Steps
 
-1. **Settle the languages:** the default, the user's changes for this post, and the source (above).
+1. **Settle the languages:** the account that sends the post and its line, any new account, the user's changes for this post, and the source (above).
 2. **Draft the full text in the source language.** Use the platform skill's headings, or the repo's. Facts in: commits, files, numbers, links.
 3. **Style pass in the source language.** For english, follow [`references/english-pass.md`](references/english-pass.md), and use the `simple-english` skill in Plain mode for part 1 if it is installed. For any language, if a plain-writing skill for it is installed, use it. Otherwise apply the same ideas: short sentences, concrete words, no filler.
 4. **Translate** into each other language, from the finished source text. Never from a draft, and never from another translation. Short sentences, no translated tone, and the same headings, lists and code as the source. One translation per term. Follow each language's own conventions: its punctuation, how it mixes in latin text, and its usual style guide (for japanese, the JTF style guide: `、` and `。`, half-width letters and digits, no space between full-width and half-width text). If english is a translation, run the english pass on it too.
