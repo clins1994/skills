@@ -14,11 +14,10 @@ This skill owns the **text**: format, languages, style and the check. The platfo
 - [`clins:create-pr`](../create-pr/SKILL.md): the pull request workflow (range, checks, title, before/after images). It uses this skill for the body.
 - [`clins:github`](../github/SKILL.md): GitHub commands and syntax for PR bodies, PR comments, review replies and issues.
 - [`clins:linear`](../linear/SKILL.md): issues and comments.
-- [`clins:slack`](../slack/SKILL.md): channel messages, thread replies and pointers.
 
 Each one gives the block syntax, the headings and the commands for its platform, and sends you here for the text. For another platform, use the closest collapsible syntax it has.
 
-Slack has no collapsible syntax. There, the channel message holds the leads, and one thread reply holds the details, a section per language. A Slack post has no divider and no footer. `clins:slack` gives the exact shape.
+Slack has no collapsible syntax. There, the channel message holds the leads, and one thread reply holds the details, a section per language. A Slack post has no divider and no footer, and `check_post.py --platform slack` checks it (below).
 
 ## Languages
 
