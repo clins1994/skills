@@ -77,8 +77,9 @@ The MCP message tools take standard Markdown and convert it. Do not write Slack'
 
    Leave out `reply.md` for a short post.
 3. **Show the text to the user** and wait for the approval (see "Rules").
-4. **Send the channel message** with `slack_send_message` (or `slack_send_message_draft`). Keep the `message_ts` it returns.
-5. **Send the thread reply** with `slack_send_message` and `thread_ts` set to that `message_ts`. Leave `reply_broadcast` off.
+4. **Send the channel message** with `slack_send_message`. Keep the `message_ts` it returns.
+   - If the user wants a draft, make it with `slack_send_message_draft`, and stop until the user sends it. Then ask for the link to the sent message, and read it with `slack_read_thread` to get its `message_ts`.
+5. **Send the thread reply** after the channel message is sent. Use `slack_send_message` with `thread_ts` set to that `message_ts`. Leave `reply_broadcast` off.
 6. **Give the user the links** to both messages. To link to the post from another channel, use the channel message's link as label text, for example `[this thread](<link>)`.
 
 ## Updating a post
