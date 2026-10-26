@@ -4,16 +4,16 @@ Use what the environment gives you. These are examples, not requirements. If non
 
 ## Capture
 
-- Android (device or emulator): `adb -s <serial> exec-out screencap -p > shot.png`. Use `exec-out`, because `adb shell` breaks the PNG.
-- iOS simulator: `xcrun simctl io booted screenshot shot.png`.
+- Android (device or emulator): `adb -s <serial> exec-out screencap -p > shot.png`. Use `exec-out`, because `adb shell` breaks the PNG. Pass the same `-s <serial>` (from `adb devices`) to every `adb` command below, so they all use that device when more than one is connected.
+- iOS simulator: `xcrun simctl io <udid> screenshot shot.png`, with the UDID from `xcrun simctl list devices booted`. `booted` works in its place when only one simulator runs.
 - Web: the browser tool's screenshot, for example `agent-browser screenshot shot.png`.
-- Short video: `adb shell screenrecord --time-limit 5 /sdcard/bug.mp4`, then `adb pull`. Make a GIF with `ffmpeg -i bug.mp4 -vf "fps=8,scale=800:-1" bug.gif`.
+- Short video: `adb -s <serial> shell screenrecord --time-limit 5 /sdcard/bug.mp4`, then `adb -s <serial> pull /sdcard/bug.mp4`. Make a GIF with `ffmpeg -i bug.mp4 -vf "fps=8,scale=800:-1" bug.gif`.
 
 ## Mark the problem
 
 Find the element's box. Do not guess it from the image.
 
-- Android: `adb exec-out uiautomator dump /dev/tty` prints `bounds="[x1,y1][x2,y2]"` for each view. A web view inside the app often shows only its outer box.
+- Android: `adb -s <serial> exec-out uiautomator dump /dev/tty` prints `bounds="[x1,y1][x2,y2]"` for each view. A web view inside the app often shows only its outer box.
 - Web: `document.querySelector("<selector>").getBoundingClientRect()`. Multiply by `devicePixelRatio` if the screenshot is larger than the viewport.
 
 Draw an ellipse a little larger than the box (ImageMagick 7, center and radii):
