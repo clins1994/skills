@@ -60,7 +60,7 @@ Before you write a GitHub post, list the signed-in accounts with `gh auth status
   - One account: save the `accounts` line with it, and change nothing else.
   - Several accounts: ask about each one: "Does `<account>` use your default languages, or its own?" Save an account line for each account that has its own. Then save the `accounts` line with all of them.
 - **An account is not in the `accounts` line.** Ask the same question for that account only, and add it to the line.
-- If you cannot ask, an unanswered account changes nothing for the other accounts. The account that sends the post keeps its own line if it has one. Only if that account is the unanswered one, use the line without an account, and say so in your result.
+- If you cannot ask, an unanswered account changes nothing for the other accounts. If the account that sends the post has its own line, use that line. If that account is the unanswered one, use the line without an account, and say so in your result.
 
 Save these lines next to the default line, in the user's global instructions file. To change them later, the user says so in plain words, for example: "use only english on alice-personal".
 
