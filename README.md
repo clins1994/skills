@@ -39,6 +39,8 @@ The plugin names each skill `clins:<skill>`, for example `/clins:post`. The skil
 | [raycast-publish](skills/raycast-publish/SKILL.md) | Publishes a Raycast extension through a PR on `raycast/extensions`: syncs your fork, pulls contributions, prepares the extension against Raycast's live guidelines, writes the full description from Raycast's template before publishing, gets Greptile to 5/5 on the draft with `address-reviews`, then marks it ready on your OK. Never merges. |
 | [github](skills/github/SKILL.md) | Posts to GitHub with `gh`: PR bodies with images uploaded by `gh --attach` and a render check, PR comments, replies in review threads, and issues. |
 | [linear](skills/linear/SKILL.md) | Posts to Linear through its MCP server: new issues with fields, safe description updates with `patch`, comments and thread replies. |
+| [slack](skills/slack/SKILL.md) | Posts to Slack through its MCP server: the leads in the channel message and the details in one thread reply, since Slack has no collapsed block. Says what Slack and the connector cannot do. |
+| [times](skills/times/SKILL.md) | Keeps your updates in one place of your own, your "times", set with one saved line. Writes the full post there, and on request a short pointer in a team channel that links to it. Works with any platform skill. |
 | [migrate-posts](skills/migrate-posts/SKILL.md) | Brings your open PRs, GitHub issues, comments and Linear issues up to date after the skills change. Updates the skills, shows a dry run for every signed-in account, then changes only the format, with a backup per post. A second run does nothing. |
 
 How they fit together:
@@ -49,9 +51,11 @@ create-pr ──► post (text) ──► github (commands)
 address-reviews ──► greptile (reviewer) · post (replies) · github (commands)
 raycast-publish ──► post (text) · github (commands) · address-reviews (review on the draft)
 linear ─────► post (text)
+slack ──────► post (text)
+times ──────► post (text) · slack (or another platform skill)
 ```
 
-`post` owns the text. `github` and `linear` own the platform: syntax, commands and updates. `create-pr` owns the pull request workflow and works with any host skill, so a `gitlab` skill can sit next to `github` later. A `jira` skill can sit next to `linear` the same way. `fork-review` owns the route when a PR goes to your fork before upstream. `address-reviews` owns the fix loop on an open PR, and each review bot gets its own skill (`greptile` today), so a `coderabbit` skill can sit next to it later. `raycast-publish` owns the route to the Raycast Store, and reads Raycast's own docs and CLI on every run instead of copying them.
+`post` owns the text. `github`, `linear` and `slack` own the platform: syntax, commands and updates. `create-pr` owns the pull request workflow and works with any host skill, so a `gitlab` skill can sit next to `github` later. A `jira` skill can sit next to `linear` the same way. `fork-review` owns the route when a PR goes to your fork before upstream. `address-reviews` owns the fix loop on an open PR, and each review bot gets its own skill (`greptile` today), so a `coderabbit` skill can sit next to it later. `times` owns where your updates go, and works with any platform skill. `raycast-publish` owns the route to the Raycast Store, and reads Raycast's own docs and CLI on every run instead of copying them.
 
 ## Fork review
 
