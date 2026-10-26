@@ -4,6 +4,7 @@
     python3 check_post.py --platform github post.md
     python3 check_post.py --platform github --langs en,ja post.md
     python3 check_post.py --platform linear --langs ja,en --source en post.md
+    python3 check_post.py --platform slack --langs ja,en --source en message.md reply.md
     python3 check_post.py --langs pt --title "pt=🇧🇷 Mais detalhes" post.md
     python3 check_post.py --read-time post.md   # print each block's read time and stop
     python3 check_post.py --langs auto post.md  # read the languages from the block titles (for old posts)
@@ -96,6 +97,13 @@ DIVIDER_ABOVE = re.compile(r"\n[ \t]*\n---[ \t]*\n[ \t]*\n$")
 FENCE = re.compile(r"^[ \t]*```.*?^[ \t]*```[^\n]*$", re.S | re.M)
 GITHUB = re.compile(r"<details[^>]*>\s*<summary>(?P<t>.*?)</summary>\n\n(?P<b>.*?)\n</details>", re.S)
 LINEAR = re.compile(r"^>>> (?P<t>[^\n]+)\n(?P<b>.*?)\n>>>$", re.S | re.M)
+# Slack has no collapsed block. The channel message holds the leads, and one thread reply holds
+# a section per language, each under a bold title line that ends with its read time.
+SLACK_TITLE = re.compile(r"^\*\*(?P<t>[^*\n]+)\*\*(?P<r>[^\n]*)$", re.M)
+# Slack runs a line that comes straight after a list into the list's last item.
+LIST_ITEM = re.compile(r"^\s*(?:[-*+•]|\d+\.)\s")
+# On Slack, the "original" label in these languages ends with a full-width colon, as in "原文：".
+FULL_COLON = {"ja", "zh"}
 EN_STYLE = [
     (r"—", "em-dash"),
     (r";", "semicolon"),
@@ -475,6 +483,137 @@ def check(text: str, platform: str | None, langs: list[str] | None = None, sourc
     return err
 
 
+def slack_sections(reply: str, titles: set[str]) -> list[tuple[int, str, str, str]]:
+    """The thread reply's sections: (position, title, read time, body). Only a bold line whose text
+    is a block title starts a section, so bold headings inside a section stay in its body."""
+    heads = [m for m in matches((SLACK_TITLE,), reply) if m["t"].strip() in titles]
+    out = []
+    for i, m in enumerate(heads):
+        stop = heads[i + 1].start() if i + 1 < len(heads) else len(reply)
+        read = m["r"].strip()
+        read = read[len(READ_SEP.strip()):].strip() if read.startswith(READ_SEP.strip()) else read
+        out.append((m.start(), m["t"].strip(), read, reply[m.end(): stop].strip("\n")))
+    return out
+
+
+def slack_summary(reply: str, titles: dict[str, str] | None = None, reads: dict[str, str] | None = None):
+    """Each section's title line, "**<title>** · <read time>", for the thread reply."""
+    titles, reads = titles or {}, reads or {}
+    phrase = {}
+    for code in [*KNOWN, *titles, *reads]:
+        t = titles.get(code) or KNOWN.get(code, (None,) * 3)[0]
+        r = reads.get(code) or KNOWN.get(code, (None,) * 3)[2]
+        if t and r:
+            phrase[t] = r
+    for _, title, _, body in slack_sections(reply, set(phrase)):
+        yield f"**{title}**{READ_SEP}{phrase[title].format(n=read_minutes(body))}"
+
+
+def list_breaks(text: str) -> list[str]:
+    """Lines that come straight after a list item without a blank line between them."""
+    err, fence, prev = [], False, ""
+    for line in text.split("\n"):
+        if line.strip().startswith("```"):
+            fence = not fence
+        if not fence and line.strip() and not LIST_ITEM.match(line) and not line.startswith((" ", "\t")) \
+                and LIST_ITEM.match(prev):
+            err.append(f"Put a blank line after the list, or Slack joins this line to its last item: {line.strip()[:40]}…")
+        prev = "" if fence else line
+    return err
+
+
+def check_slack(message: str, reply: str | None, langs: list[str] | None = None, source: str | None = None,
+                titles: dict[str, str] | None = None, labels: dict[str, str] | None = None,
+                reads: dict[str, str] | None = None) -> list[str]:
+    """A Slack post: the channel message (the leads) and, when the post has details, its thread reply."""
+    err: list[str] = []
+    langs = langs or ["en"]
+    source = source or langs[0]
+    titles, labels, reads = titles or {}, labels or {}, reads or {}
+    if len(set(langs)) != len(langs):
+        return [f"A language appears twice in --langs {','.join(langs)}."]
+    want_titles = []
+    for lang in langs:
+        t = titles.get(lang) or KNOWN.get(lang, (None,) * 3)[0]
+        if not t:
+            return [f"No built-in title for {lang}. Pass --title {lang}=..."]
+        if "{n}" not in (reads.get(lang) or KNOWN.get(lang, (None,) * 3)[2] or ""):
+            return [f"No built-in read time for {lang}. Pass --read {lang}=... with {{n}} for the minutes."]
+        want_titles.append(t)
+    label = None
+    if source in langs and source != langs[0]:
+        label = labels.get(langs[0]) or KNOWN.get(langs[0], (None,) * 3)[1]
+        if not label:
+            return [f"No built-in 'original' label for {langs[0]}. Pass --label {langs[0]}=..."]
+        label += "：" if base(langs[0]) in FULL_COLON else ":"
+
+    for name, text in (("message", message), ("reply", reply or "")):
+        if find_footer(text) or find_old_footer(text):
+            err.append(f"The {name} has a footer. Slack posts have none: the post shows who sent it.")
+        if matches((GITHUB, LINEAR), text):
+            err.append(f"The {name} has GitHub or Linear block syntax. Slack has no collapsed block.")
+        if "---" in (l.strip() for l in text.split("\n")):
+            err.append(f"The {name} has a --- line. Slack shows it as text, not as a divider.")
+        if "@greptileai" in text:
+            err.append(f"The {name} contains @greptileai.")
+        err += list_breaks(text)
+
+    # The channel message: the leads only, one paragraph per language.
+    if slack_sections(message, set(want_titles)):
+        err.append("The details go in the thread reply, not in the channel message.")
+    lines = message.strip().split("\n")
+    lines = lines[1:] if lines and lines[0].startswith(("@", "<@", "<!")) else lines
+    paras = [p.strip() for p in re.split(r"\n\s*\n", "\n".join(lines).strip()) if p.strip()]
+    if len(paras) < len(langs):
+        return err + [f"Expected one lead per language ({', '.join(langs)}), found {len(paras)}."]
+    if len(paras) > len(langs):
+        err.append("The channel message holds only the leads. Move the rest to the thread reply.")
+    leads = dict(zip(langs, paras))
+    if label:
+        if not leads[source].startswith(label):
+            err.append(f"The {source} lead is the original. Start it with '{label}'.")
+        else:
+            leads[source] = leads[source][len(label):].strip()
+    if len(re.findall(r"[.!?。！？।](?:\s|$)|[。！？।](?=\S)", no_code(leads[source]))) > 2:
+        err.append("The lead is longer than two sentences. Move detail into the thread reply.")
+    for lang in langs:
+        err += style(lang, [no_code(leads[lang])])
+    if reply is None:
+        return err
+
+    # The thread reply: a section per language, in order, each with its read time.
+    sections = slack_sections(reply, set(want_titles))
+    if not sections:
+        return err + [f"The thread reply has no section titles. Start each section with a bold line, "
+                      f"for example '**{want_titles[0]}**{READ_SEP}…'."]
+    if reply[: sections[0][0]].strip():
+        err.append("The thread reply starts with the first section title.")
+    found = [s[1] for s in sections]
+    if found != want_titles:
+        err.append(f"Expected the section titles {want_titles}, found {found}.")
+    bodies = {}
+    for lang, t in zip(langs, want_titles):
+        for _, title, read, body in sections:
+            if title != t:
+                continue
+            bodies[lang] = body
+            want = (reads.get(lang) or KNOWN[lang][2]).format(n=read_minutes(body))
+            if read != want:
+                err.append(f"Put the read time after the title: '**{t}**{READ_SEP}{want}'"
+                           f"{f', not {read!r}' if read else ''}.")
+            err += style(lang, prose(body))
+    src = bodies.get(source, "")
+    for lang, body in bodies.items():
+        if lang != source and src:
+            a, b = shape(body), shape(src)
+            a["bold headings"] = len(SLACK_TITLE.findall(body))
+            b["bold headings"] = len(SLACK_TITLE.findall(src))
+            for k in a:
+                if a[k] != b[k]:
+                    err.append(f"Different number of {k}: {lang} {a[k]}, {source} {b[k]}.")
+    return err
+
+
 def pairs(values: list[str], flag: str) -> dict[str, str]:
     out = {}
     for v in values:
@@ -487,8 +626,9 @@ def pairs(values: list[str], flag: str) -> dict[str, str]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("path", help="post file, or - for stdin")
-    ap.add_argument("--platform", choices=("github", "linear"))
+    ap.add_argument("path", help="post file, or - for stdin. On Slack, the channel message")
+    ap.add_argument("reply", nargs="?", help="on Slack, the thread reply with the details, if the post has one")
+    ap.add_argument("--platform", choices=("github", "linear", "slack"))
     ap.add_argument("--langs", default="en",
                     help="language codes in order, lead first, for example en,ja, or auto to read them from the block titles")
     ap.add_argument("--source", help="the language the post was written in (default: the lead)")
@@ -505,6 +645,21 @@ def main() -> int:
                     help="the post follows a repo template whose heading comes before the lead")
     a = ap.parse_args()
     raw = sys.stdin.read() if a.path == "-" else open(a.path, encoding="utf-8", newline="").read()
+    if a.reply and a.platform != "slack":
+        sys.exit("A second file (the thread reply) is only for --platform slack.")
+    if a.platform == "slack":
+        reply = open(a.reply, encoding="utf-8").read().replace("\r\n", "\n") if a.reply else None
+        if a.read_time:
+            for line in slack_summary(reply or raw.replace("\r\n", "\n"), pairs(a.title, "--title"), pairs(a.read, "--read")):
+                print(line)
+            return 0
+        langs = [l.strip() for l in a.langs.split(",") if l.strip()]
+        errors = check_slack(raw.replace("\r\n", "\n"), reply, langs, a.source, pairs(a.title, "--title"),
+                             pairs(a.label, "--label"), pairs(a.read, "--read"))
+        for e in errors:
+            print(f"error: {e}")
+        print(f"{len(errors)} error(s)")
+        return 1 if errors else 0
     if a.fix:
         sys.stdout.reconfigure(newline="")
         sys.stdout.write(fix(raw, pairs(a.title, "--title"), pairs(a.read, "--read")))

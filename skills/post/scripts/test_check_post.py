@@ -7,7 +7,8 @@ import sys
 import tempfile
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from check_post import BEHIND_NOTE, BEHIND_TITLE, EN_TITLE, FOOTER, check, detect, fix, footer, read_minutes, summary_lines  # noqa: E402
+from check_post import (BEHIND_NOTE, BEHIND_TITLE, EN_TITLE, FOOTER, check, check_slack, detect, fix, footer,  # noqa: E402
+                        read_minutes, slack_summary, summary_lines)
 
 GH_EN = f"""Adds retry to the upload step. Please review the backoff values.
 
@@ -311,6 +312,48 @@ def cli(post: str, *args: str) -> str:
                          capture_output=True, text=True)
     pathlib.Path(f.name).unlink()
     return out.stdout + out.stderr
+
+
+# Slack: the channel message holds the leads, and the thread reply holds a section per language.
+SLACK_MSG = """アップロードに再試行を足しました。待ち時間の値を見てください。
+
+原文：Adds retry to the upload step. Please review the backoff values.
+"""
+SLACK_REPLY = f"""**🇯🇵 詳細** · 読了目安1分
+
+**概要**
+- 3回まで再試行する。
+
+**{EN_TITLE}** · 1 min read
+
+**Summary**
+- Retry three times.
+"""
+JA_EN = dict(langs=["ja", "en"], source="en")
+SLACK = [
+    ("leads and reply", SLACK_MSG, SLACK_REPLY, JA_EN, []),
+    ("leads only", SLACK_MSG, None, JA_EN, []),
+    ("english only", "Adds retry to the upload step.\n", None, dict(), []),
+    ("mention line first", "<@U123>\n\n" + SLACK_MSG, None, JA_EN, []),
+    ("half-width colon after 原文", SLACK_MSG.replace("原文：", "原文: "), None, JA_EN, ["原文："]),
+    ("extra paragraph in the message", SLACK_MSG + "\nMore text.\n", None, JA_EN, ["only the leads"]),
+    ("footer", SLACK_MSG, SLACK_REPLY + f"\n{FOOTER}\n", JA_EN, ["footer"]),
+    ("divider", SLACK_MSG, SLACK_REPLY.replace("**🇬🇧", "---\n\n**🇬🇧"), JA_EN, ["--- line"]),
+    ("details block", SLACK_MSG, EN_BLOCK, JA_EN, ["block syntax"]),
+    ("line after a list", SLACK_MSG, SLACK_REPLY.replace("- Retry three times.\n", "- Retry three times.\nThen stop.\n"),
+     JA_EN, ["blank line after the list"]),
+    ("indented line after a list item is fine", SLACK_MSG,
+     SLACK_REPLY.replace("- 3回まで再試行する。\n", "- 3回まで再試行する。\n  続き\n"), JA_EN, []),
+    ("wrong read time", SLACK_MSG, SLACK_REPLY.replace("1 min read", "3 min read"), JA_EN, ["read time"]),
+    ("sections out of order", SLACK_MSG, SLACK_REPLY[SLACK_REPLY.index(f"**{EN_TITLE}**"):] + "\n"
+     + SLACK_REPLY[: SLACK_REPLY.index(f"**{EN_TITLE}**")], JA_EN, ["section titles"]),
+    ("different shape", SLACK_MSG, SLACK_REPLY.replace("- Retry three times.\n", "- Retry.\n- Stop.\n"), JA_EN,
+     ["list items"]),
+    ("details in the channel message", SLACK_MSG + "\n" + SLACK_REPLY, None, JA_EN, ["thread reply"]),
+    ("text before the first section", SLACK_MSG, "Hi.\n\n" + SLACK_REPLY, JA_EN, ["starts with the first section"]),
+]
+
+
 FIXES = [
     ("english github post", GH_EN, dict()),
     ("english linear post", LINEAR_EN, dict(platform="linear")),
@@ -403,5 +446,14 @@ for name, text, kw, want in CASES:
     ok = (not errs) if not want else all(any(w in e for e in errs) for w in want)
     print(("ok  " if ok else "FAIL"), name, "" if ok else errs)
     failed += not ok
+for name, message, reply, kw, want in SLACK:
+    errs = check_slack(message, reply, kw.get("langs"), kw.get("source"))
+    ok = (not errs) if not want else all(any(w in e for e in errs) for w in want)
+    print(("ok  " if ok else "FAIL"), "slack:", name, "" if ok else errs)
+    failed += not ok
+got = list(slack_summary(SLACK_REPLY.replace("1 min read", "x").replace("読了目安1分", "x")))
+ok = got == ["**🇯🇵 詳細** · 読了目安1分", f"**{EN_TITLE}** · 1 min read"]
+print(("ok  " if ok else "FAIL"), "slack: summary", "" if ok else got)
+failed += not ok
 print("all passed" if not failed else f"{failed} failed")
 sys.exit(1 if failed else 0)
