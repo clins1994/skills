@@ -1,8 +1,8 @@
 ---
 name: slack
-description: Post to Slack through the Slack MCP server. A post is a channel message with the leads and one thread reply with the details. A pointer is a short message in a team channel that links to that thread. Slack has no collapsed block, so the thread is the fold. Gives the message syntax, mentions, link previews, and what the connector cannot do (edit, delete). The text comes from clins:post, in the user's languages. Use whenever you write, draft or send a Slack post, an update, or a link to a thread.
+description: Post to Slack through the Slack MCP server. A post is a channel message with the leads and one thread reply with the details. Slack has no collapsed block, so the thread is the fold. Gives the message syntax, mentions, link previews, and what the connector cannot do (edit, delete). The text comes from clins:post, in the user's languages. Use whenever you write, draft or send a Slack post, an update, or a link to a thread.
 user-invocable: true
-argument-hint: "[post | reply | pointer] [channel, or a message link to reply to] [any language changes]"
+argument-hint: "[post | reply] [channel, or a message link to reply to] [any language changes]"
 ---
 
 # /clins:slack — Post to Slack
@@ -26,21 +26,6 @@ Slack has no collapsed block. The thread does the same job: the channel shows th
 2. Find the channel ID with `slack_search_channels`. To post in the user's DM, use the user's own ID as the channel.
 3. Read the channel's recent messages (`slack_read_channel`) for its language and tone, unless the user already said how to write there.
 
-## Where posts go
-
-Many people read only Slack. If the user works this way, split the post:
-
-- **The home channel** holds the full post: the leads in the channel message, the details in the thread. For many people this is a personal channel such as `#times-<name>`.
-- **A team channel** gets a **pointer**: a short message with the leads and a link to the thread in the home channel.
-
-If the user's instructions file has a home channel line, read it from there. These are the same files `clins:post` reads:
-
-```
-clins:slack home: #times-alice
-```
-
-If there is no such line, post where the user says. If that is not clear, ask.
-
 ## The post
 
 **The channel message** has one lead per language, in the post's language order, and nothing else. A lead can carry its key link as label text: the pull request, the issue or the doc.
@@ -63,14 +48,6 @@ If there is no such line, post where the user says. If that is not clear, ask.
 
 **Changes**
 - …
-```
-
-**A pointer** is a short post in a team channel: the leads and a link to the thread. It has no details.
-
-```
-<japanese lead>。詳細は[こちらのスレッド](<thread link>)へ。
-
-原文：<english lead>. Details are in [this thread](<thread link>).
 ```
 
 A short post (nothing more to say than the leads) is only the channel message, with no thread reply.
@@ -102,7 +79,7 @@ The MCP message tools take standard Markdown and convert it. Do not write Slack'
 3. **Show the text to the user** and wait for the approval (see "Rules").
 4. **Send the channel message** with `slack_send_message` (or `slack_send_message_draft`). Keep the `message_ts` it returns.
 5. **Send the thread reply** with `slack_send_message` and `thread_ts` set to that `message_ts`. Leave `reply_broadcast` off.
-6. **Give the user the links** to both messages. For a pointer, send it after the thread exists, and link to the channel message of the thread.
+6. **Give the user the links** to both messages. To link to the post from another channel, use the channel message's link as label text, for example `[this thread](<link>)`.
 
 ## Updating a post
 
