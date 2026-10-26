@@ -37,7 +37,8 @@ This skill sends a post to Linear. The text (leads, details blocks, languages, f
 1. **Title:** imperative and short, with code names as they are. Match the team's language and style.
 2. **Description:** write it with `clins:post`. Headings inside the details: Context, Work, Done when. Add To decide or Sub-issues only when they have content. Translate them for each other language, for example in japanese: 背景, やること, 完了条件.
 3. **Fields:** only the ones the user gave or the team clearly uses: `assignee` (a name, email or `"me"`), `labels` (names from `list_issue_labels`), `project`, `parentId` (for a sub-issue), `priority`. To add a label to an existing issue, use `addLabels`: `labels` replaces the whole set. Use names exactly as Linear returns them. Status names can carry an emoji prefix, and a bare name can fail silently, so copy the full name from `list_issue_statuses`.
-4. `save_issue` with the title, team, description and fields. Give the user the issue ID and URL.
+4. **Image** (if `clins:post` adds an evidence image): `prepare_file_upload` with the file name, type and exact size, then `curl -X PUT --data-binary @<file>` to `uploadRequest.url` with every header from `uploadRequest.headers`, unchanged. The URL expires after 60 seconds, so upload one file at a time. Put `![<alt>](<assetUrl>)` in the description after the leads.
+5. `save_issue` with the title, team, description and fields. Give the user the issue ID and URL.
 
 ## Update an issue description
 
@@ -48,7 +49,7 @@ This skill sends a post to Linear. The text (leads, details blocks, languages, f
 
 ## Comment
 
-1. Write it with `clins:post`. A short post (lead only) is often right for a comment.
+1. Write it with `clins:post`. A short post (lead only) is often right for a comment. Upload an evidence image as in "New issue", step 4.
 2. `save_comment` with the issue ID and the body.
 3. To reply in a thread, pass `parentId` (the top comment's ID, from `list_comments`) and `body`, with no `issueId`.
 4. To edit your own comment, `save_comment` with its `id` and the new `body`. Comments keep issue IDs as plain text, so no `patch` is needed.
