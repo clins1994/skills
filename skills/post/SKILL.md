@@ -14,8 +14,11 @@ This skill owns the **text**: format, languages, style and the check. The platfo
 - [`clins:create-pr`](../create-pr/SKILL.md): the pull request workflow (range, checks, title, before/after images). It uses this skill for the body.
 - [`clins:github`](../github/SKILL.md): GitHub commands and syntax for PR bodies, PR comments, review replies and issues.
 - [`clins:linear`](../linear/SKILL.md): issues and comments.
+- [`clins:slack`](../slack/SKILL.md): channel messages, thread replies and pointers.
 
 Each one gives the block syntax, the headings and the commands for its platform, and sends you here for the text. For another platform, use the closest collapsible syntax it has.
+
+Slack has no collapsible syntax. There, the channel message holds the leads, and one thread reply holds the details, a section per language. A Slack post has no divider and no footer. `clins:slack` gives the exact shape.
 
 ## Languages
 
@@ -67,7 +70,7 @@ The user changes the languages in plain words when they call the skill. These ch
 The **source** is the user's default lead language. Write the post there first, and translate every other language from the finished source text.
 
 - Usually the source is also the lead, so the lead is the original.
-- If the user puts another language first, the source lead goes second or later, after a label that means "original" in the lead language: `原文:` for japanese and chinese, `Original:` for english and portuguese. This tells readers which text is authoritative.
+- If the user puts another language first, the source lead goes second or later, after a label that means "original" in the lead language: `原文:` for japanese and chinese (`原文：` on Slack), `Original:` for english and portuguese. This tells readers which text is authoritative.
 - If the source is not in this post's languages at all ("use only portuguese" for an english user), the lead language is the source.
 
 ## The format
@@ -188,6 +191,7 @@ The script takes language codes. Pass the post's languages in order, lead first,
 python3 <skill-dir>/scripts/check_post.py --platform github post.md                          # english only
 python3 <skill-dir>/scripts/check_post.py --platform github --langs en,ja post.md            # lead english, also japanese
 python3 <skill-dir>/scripts/check_post.py --platform linear --langs ja,en --source en post.md # lead japanese, english is the original
+python3 <skill-dir>/scripts/check_post.py --platform slack --langs ja,en --source en message.md reply.md # Slack: the channel message and its thread reply
 python3 <skill-dir>/scripts/check_post.py --langs pt --title "pt=🇧🇷 Mais detalhes" post.md     # set a title the script does not know
 python3 <skill-dir>/scripts/check_post.py --read-time post.md                                # print each block title with its read time
 python3 <skill-dir>/scripts/check_post.py --fix post.md > new.md                              # bring an older post's format up to date
