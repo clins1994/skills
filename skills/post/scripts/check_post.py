@@ -557,7 +557,7 @@ def check_slack(message: str, reply: str | None, langs: list[str] | None = None,
         if "@greptileai" in text:
             err.append(f"The {name} contains @greptileai.")
         # Slack has no image syntax. The image or video is an uploaded file (clins:slack, "Media").
-        if re.search(r"!\[[^\]]*\]\(", FENCE.sub("", text)):
+        if re.search(r"!\[[^\]]*\]\(", no_code(FENCE.sub("", text))):
             err.append(f"The {name} has image Markdown. Slack shows none: upload the file and share it instead.")
         err += list_breaks(text)
 

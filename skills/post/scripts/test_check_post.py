@@ -359,6 +359,9 @@ SLACK = [
     ("image markdown in a code example is fine", SLACK_MSG,
      SLACK_REPLY.replace("- Retry three times.\n", "- Retry three times.\n\n```\n![alt](url)\n```\n")
      .replace("- 3回まで再試行する。\n", "- 3回まで再試行する。\n\n```\n![alt](url)\n```\n"), JA_EN, []),
+    ("image markdown in inline code is fine", SLACK_MSG,
+     SLACK_REPLY.replace("- Retry three times.\n", "- Retry three times, not `![alt](url)`.\n")
+     .replace("- 3回まで再試行する。\n", "- 3回まで再試行する。`![alt](url)`は使わない。\n"), JA_EN, []),
 ]
 
 
