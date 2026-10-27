@@ -1,6 +1,6 @@
 # What Slack does and does not do
 
-The Slack docs answer most format questions. The rest comes from test posts sent through the Slack MCP connector on 2026-10-26, and seen in the Slack desktop app. If the connector or Slack changes, test again.
+The Slack docs answer most format questions. The rest comes from test posts sent through the Slack MCP connector on 2026-10-26 and 2026-10-28, and seen in the Slack desktop app. If the connector or Slack changes, test again.
 
 | Behavior | Result | Source |
 |---|---|---|
@@ -18,6 +18,10 @@ The Slack docs answer most format questions. The rest comes from test posts sent
 | "Sent using @Claude" | The connector adds it under every message it sends. No setting to turn it off was found. | Test |
 | A line straight after a list | Joined to the list's last item in a draft. Put a blank line after every list. | Test |
 | Edit or delete through the MCP tools | Not possible. The API's `chat.delete` exists, but the connector has no tool for it. | MCP tools, [`chat.delete`](https://docs.slack.dev/reference/methods/chat.delete) |
+| An image in the text, `![alt](url)` | Slack message formatting has no image syntax. Do not rely on it. Upload the file instead. | [Formatting message text](https://docs.slack.dev/messaging/formatting-message-text) |
+| Upload a file through the MCP tools | Works: `slack_get_file_upload_url`, a POST of the raw bytes with `curl`, then `slack_complete_file_upload`. A 300 KB PNG and a 2.8 MB MP4 went into a thread on 2026-10-28. | Test, [`files.getUploadURLExternal`](https://docs.slack.dev/reference/methods/files.getUploadURLExternal) |
+| File size limit | The API docs give no fixed limit. A workspace can block large files (`file_upload_size_restricted`), and a free workspace stops at 5 GB of files. | [`files.getUploadURLExternal`](https://docs.slack.dev/reference/methods/files.getUploadURLExternal) |
+| Share a file again, or move it | Not possible after `slack_complete_file_upload` shares it. Use the file link it returns to point to it. | MCP tools |
 | Message length | Keep `text` under 4,000 characters. Slack truncates above 40,000. | [`chat.postMessage`](https://docs.slack.dev/reference/methods/chat.postMessage) |
 
 These results cover messages sent through the connector. A message the user types in the Slack app can behave differently: the composer can show a preview, and the user removes it with ×.
