@@ -556,6 +556,9 @@ def check_slack(message: str, reply: str | None, langs: list[str] | None = None,
             err.append(f"The {name} has a --- line. Slack shows it as text, not as a divider.")
         if "@greptileai" in text:
             err.append(f"The {name} contains @greptileai.")
+        # Slack has no image syntax. The image or video is an uploaded file (clins:slack, "Media").
+        if re.search(r"!\[[^\]]*\]\(", FENCE.sub("", text)):
+            err.append(f"The {name} has image Markdown. Slack shows none: upload the file and share it instead.")
         err += list_breaks(text)
 
     # The channel message: the leads only, one paragraph per language.
