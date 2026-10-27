@@ -61,7 +61,7 @@ When `clins:post` adds an evidence image or a short video, upload the file and s
 
 - With the leads, by default. Pick the one file that shows the result most clearly, and share it with the leads as its `initial_comment`. The file and the leads are then one channel message.
 - Two files with the leads at most, and only when one cannot show the result, for example a before and an after. The tool shares one file per call, so share the second file directly after the first, with no `initial_comment`. It shows as a second message in the channel.
-- Every other file goes in the thread, as one more reply directly after the details reply. Do not spam the channel.
+- Every other file goes in the thread, as one more reply directly after the details reply. A short post has no details reply, so the file is the first thread reply. Do not spam the channel.
 
 **Upload:**
 
@@ -110,7 +110,7 @@ The MCP message tools take standard Markdown and convert it. Do not write Slack'
    - If the post has media, share the lead file with the leads as `initial_comment` in place of `slack_send_message` (see "Media"). The tool returns no `message_ts`, so read the channel with `slack_read_channel` and take the `ts` of the file's message. Share a second lead file, if any, after it.
    - If the user wants a draft, make it with `slack_send_message_draft`, and stop until the user sends it. Then ask for the link to the sent message, and read it with `slack_read_thread` to get its `message_ts`.
 5. **Send the thread reply** after the channel message is sent. Use `slack_send_message` with `thread_ts` set to that `message_ts`. Leave `reply_broadcast` off.
-   - Share the other files now, in the thread after this reply (see "Media").
+   - Share the other files now, in the thread after this reply (see "Media"). A short post has no thread reply: share the other files as the first thread replies.
 6. **Give the user the links** to both messages. To link to the post from another channel, use the channel message's link as label text, for example `[this thread](<link>)`.
 
 ## Updating a post
