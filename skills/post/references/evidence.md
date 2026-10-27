@@ -33,4 +33,4 @@ Python with Pillow works too: `ImageDraw.Draw(img).ellipse(box, outline="red", w
 
 ## Place it
 
-Directly after the leads, before the divider, with alt text that says what it shows, for example `![The Save button, circled in red, far from the form](<url>)`. The platform skill says how to upload the file and get the URL. If it has no upload step (Slack, for now), leave the image out.
+Directly after the leads, before the divider, with alt text that says what it shows, for example `![The Save button, circled in red, far from the form](<url>)`. The platform skill says how to upload the file and get the URL. Slack is different: it has no image syntax in the text, so `clins:slack` ("Media") shares the file with the leads, and any more files in the thread, and the alt text goes in the upload. If the platform skill has no upload step, leave the image out.

@@ -354,6 +354,14 @@ SLACK = [
      ["list items"]),
     ("details in the channel message", SLACK_MSG + "\n" + SLACK_REPLY, None, JA_EN, ["thread reply"]),
     ("text before the first section", SLACK_MSG, "Hi.\n\n" + SLACK_REPLY, JA_EN, ["starts with the first section"]),
+    ("image markdown in the reply", SLACK_MSG, SLACK_REPLY + "\n![The Save button](https://example.com/a.png)\n",
+     JA_EN, ["image Markdown"]),
+    ("image markdown in a code example is fine", SLACK_MSG,
+     SLACK_REPLY.replace("- Retry three times.\n", "- Retry three times.\n\n```\n![alt](url)\n```\n")
+     .replace("- 3回まで再試行する。\n", "- 3回まで再試行する。\n\n```\n![alt](url)\n```\n"), JA_EN, []),
+    ("image markdown in inline code is fine", SLACK_MSG,
+     SLACK_REPLY.replace("- Retry three times.\n", "- Retry three times, not `![alt](url)`.\n")
+     .replace("- 3回まで再試行する。\n", "- 3回まで再試行する。`![alt](url)`は使わない。\n"), JA_EN, []),
 ]
 
 
