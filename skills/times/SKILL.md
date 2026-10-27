@@ -33,7 +33,7 @@ If there is no line, ask the user where their times is. If the agent has a quest
 
 1. **Find the destination** (above), and the platform skill for it: `clins:slack` for `slack`. If that skill is not installed, use the platform's own tools and the closest shape it has, and tell the user.
 2. **Write the post with `clins:post`**, in the platform's shape. On Slack, the channel message holds the leads, and one thread reply holds the details.
-3. **Send it to the times** through the platform skill. Keep the link to the post.
+3. **Send it to the times** through the platform skill, with any image or video that `clins:post` adds. Keep the link to the post.
 4. **Pointer.** Do this step only for a pointer the user asked for (see "Rules"). A pointer is a short post in the team channel. It has the leads, with the link to the times post as label text, and no details:
 
    ```
@@ -42,7 +42,7 @@ If there is no line, ask the user where their times is. If the agent has a quest
    原文：<english lead>. Details are in [this thread](<times post link>).
    ```
 
-   Write it with `clins:post` as a short post, and send it through the same platform skill.
+   Write it with `clins:post` as a short post, and send it through the same platform skill. The pointer has no image or video: the times post has them.
 5. **Give the user the links** to the times post and to the pointer.
 
 ## What goes where
