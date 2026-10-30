@@ -114,6 +114,7 @@ Ideas and pull requests are welcome. Some starting points: a Linear API path for
 `post` builds on these public skills, and works better with them installed:
 
 - [simple-english](https://github.com/AminBlg/SimpleEnglish) by AminBlg
+- [natural-japanese](https://github.com/coji/natural-japanese) by coji
 - [i-have-adhd](https://github.com/ayghri/i-have-adhd) by ayghri
 - [unslop](https://github.com/cursor/plugins/tree/main/pstack/skills/unslop) from Cursor's `pstack`
 
