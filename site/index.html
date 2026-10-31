@@ -26,13 +26,20 @@
 <meta name="color-scheme" content="dark light">
 <link rel="canonical" href="https://clins.me/skills">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/GeistSerif-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-/* Tokens follow clins.me: Geist, #fcfcfc / #1c1c1c, Tailwind's neutral grays, no accent color. */
+/* Tokens follow clins.me: Geist Serif, #fcfcfc / #1c1c1c, Tailwind's neutral grays, no accent color. */
 @font-face {
   font-family: 'Geist';
   src: url('/fonts/Geist-Variable.woff2') format('woff2');
   font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist Serif';
+  src: url('/fonts/GeistSerif-Regular.woff2') format('woff2');
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
@@ -52,6 +59,7 @@
   --ok: #16a34a;
   --bad: #dc2626;
   --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Geist Serif', 'Times New Roman', Times, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 .dark {
@@ -76,7 +84,7 @@ html { scroll-behavior: smooth; overflow-y: scroll; }
 .dark ::selection { background: #fff; color: #000; }
 body {
   margin: 0 auto; max-width: 42rem; min-height: 100vh; padding: 8px 24px 0;
-  font-family: var(--font-sans); font-size: 14px; line-height: 1.5;
+  font-family: var(--font-serif); font-size: 14px; line-height: 1.5;
   background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased;
 }
 a { color: inherit; }
