@@ -1,6 +1,6 @@
 ---
 name: slack
-description: Post to Slack through the Slack MCP server. A post is a channel message with the leads and one thread reply with the details. Slack has no collapsed block, so the thread is the fold. Gives the message syntax, mentions, link previews, image and video uploads, and what the connector cannot do (edit, delete). The text comes from clins:post, in the user's languages. Use whenever you write, draft or send a Slack post, an update, or a link to a thread.
+description: Post to Slack through the Slack MCP server, or as the user's own bot through a poster command they name. A post is a channel message with the leads and one thread reply with the details. Slack has no collapsed block, so the thread is the fold. Gives the message syntax, mentions, link previews, image and video uploads, and what the connector cannot do (edit, delete). The text comes from clins:post, in the user's languages. Use whenever you write, draft or send a Slack post, an update, or a link to a thread.
 user-invocable: true
 argument-hint: "[post | reply] [channel, or a message link to reply to] [any language changes]"
 ---
@@ -20,6 +20,28 @@ Slack has no collapsed block. The thread does the same job: the channel shows th
 - Send each message once. If a tool call fails, read the error before you try again: `is_archived`, for example, never works on retry.
 - Do not mention people or groups unless the post needs their action. A mention notifies them.
 - A shared file is final too. After `slack_complete_file_upload` shares a file, you cannot share it again or move it. Make sure that the user approved the destination (the channel and the thread) before you share.
+
+## Post as a bot
+
+By default the post goes out through the Slack MCP connector, so Slack shows the user as the author. A user can name a command that posts as a bot (their own Slack app) in a line in an instructions file the agent already reads, for example `~/.claude/CLAUDE.md`:
+
+```
+clins:slack poster: <command>
+```
+
+Look for the line in the same order as `clins:post` looks for its language line. The command must:
+
+- take `--channel <id>` and an optional `--thread <ts>`,
+- read the message as standard Markdown from stdin,
+- print the new message's `ts`, and exit with a non-zero code when Slack rejects the message.
+
+With a poster line:
+
+- Send each message with `<command> --channel <id> [--thread <ts>] < message.md`. Do not use `slack_send_message`.
+- Slack shows the bot as the author. Do not add a line that says an agent wrote the post.
+- The bot can post only in channels where it is a member. If the command fails, show the error to the user. Do not fall back to the connector, because that posts as the user.
+- Drafts and file uploads still go through the connector, as the user. Tell the user before you share a file that way.
+- Read channels and find IDs with the connector, as before.
 
 ## Preflight
 
@@ -85,7 +107,7 @@ If an upload fails, send the post without the file and tell the user. Do not pas
 
 The MCP message tools take standard Markdown and convert it. Do not write Slack's older mrkdwn (`*bold*`, `~strike~`).
 
-- **No footer and no divider.** The post already shows who sent it, and the connector adds "Sent using" under each message. Slack shows a `---` line as text.
+- **No footer and no divider.** The post already shows who sent it, and the connector adds "Sent using" under each message. A bot's message also shows the bot as its author. Slack shows a `---` line as text.
 - **No collapsed block.** No `<details>`, no `>>>`.
 - **Headings** inside a section are bold lines (`**Changes**`). `#` headings render, but they are large in a chat message.
 - **A blank line after every list.** Slack joins a line that comes straight after a list to the list's last item.
@@ -106,10 +128,10 @@ The MCP message tools take standard Markdown and convert it. Do not write Slack'
 
    Leave out `reply.md` for a short post.
 3. **Show the text to the user** and wait for the approval (see "Rules").
-4. **Send the channel message** with `slack_send_message`. Keep the `message_ts` it returns.
+4. **Send the channel message** with `slack_send_message`, or with the poster command when there is a poster line (see "Post as a bot"). Keep the `message_ts`, or the `ts` the command prints.
    - If the post has media, share the lead file with the leads as `initial_comment` in place of `slack_send_message` (see "Media"). The tool returns no `message_ts`, so read the channel with `slack_read_channel` and take the `ts` of the file's message. Share a second lead file, if any, after it.
    - If the user wants a draft, make it with `slack_send_message_draft`, and stop until the user sends it. Then ask for the link to the sent message, and read it with `slack_read_thread` to get its `message_ts`.
-5. **Send the thread reply** after the channel message is sent. Use `slack_send_message` with `thread_ts` set to that `message_ts`. Leave `reply_broadcast` off.
+5. **Send the thread reply** after the channel message is sent. Use `slack_send_message` with `thread_ts` set to that `message_ts`, or the poster command with `--thread <ts>`. Leave `reply_broadcast` off.
    - Share the other files now, in the thread after this reply (see "Media"). A short post has no thread reply: share the other files as the first thread replies.
 6. **Give the user the links** to both messages. To link to the post from another channel, use the channel message's link as label text, for example `[this thread](<link>)`.
 
