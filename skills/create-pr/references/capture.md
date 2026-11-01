@@ -42,6 +42,20 @@ adb -s emulator-5554 exec-out screencap -p > "$SCRATCH/shots/screen-before.png"
 - To get the same state on both builds, drive the app with the same `adb shell input` steps, or with the same test.
 - A short screen recording: `adb shell screenrecord --time-limit 8 /sdcard/flow.mp4`, then `adb pull /sdcard/flow.mp4`.
 
+## Desktop app
+
+Use the `agent-desktop` CLI for a native app (macOS, Windows or Linux). Run `agent-desktop skills get desktop` first and follow it. Capture one window:
+
+```bash
+agent-desktop list-windows --app <app>
+agent-desktop resize-window --app <app> --width 1280 --height 800
+agent-desktop screenshot --app <app> "$SCRATCH/shots/settings-before.png"
+```
+
+- If the app has more than one window, pass `--window-id` from `list-windows` to both commands.
+- To get the same state on both builds, drive the app with the same `agent-desktop` steps: take a snapshot, act on a ref, then take a snapshot again to check.
+- A window can show private content from other apps or accounts. Look at the image before you upload it.
+
 ## Crop and size
 
 - Crop each image to the part that changed, with a little context around it. A full tablet screen at 2560x1600 is about 5 MB. The input bar alone is about 200 KB.

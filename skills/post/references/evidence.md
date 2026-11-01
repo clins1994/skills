@@ -7,6 +7,7 @@ Use what the environment gives you. These are examples, not requirements. If non
 - Android (device or emulator): `adb -s <serial> exec-out screencap -p > shot.png`. Use `exec-out`, because `adb shell` breaks the PNG. Pass the same `-s <serial>` (from `adb devices`) to every `adb` command below, so they all use that device when more than one is connected.
 - iOS simulator: `xcrun simctl io <udid> screenshot shot.png`, with the UDID from `xcrun simctl list devices booted`. `booted` works in its place when only one simulator runs.
 - Web: the browser tool's screenshot, for example `agent-browser screenshot shot.png`.
+- Desktop app: `agent-desktop screenshot --app <app> shot.png`. Pass `--window-id` from `agent-desktop list-windows --app <app>` when the app has more than one window.
 - Short video: `adb -s <serial> shell screenrecord --time-limit 5 /sdcard/bug.mp4`, then `adb -s <serial> pull /sdcard/bug.mp4`. Make a GIF with `ffmpeg -i bug.mp4 -vf "fps=8,scale=800:-1" bug.gif`.
 
 ## Mark the problem
